@@ -36,7 +36,6 @@ const saveToCache = <T>(key: string, data: T, ttl: number, persistent: boolean):
         } else {
             sessionStorage.setItem(key, JSON.stringify(cacheItem));
         }
-        console.log(`Данные сохранены в кэш: ${key}`);
     } catch (error) {
         console.error(`Ошибка при сохранении в кэш: ${key}`, error);
     }
@@ -60,8 +59,6 @@ const getFromCache = <T>(key: string, persistent: boolean): T | null => {
             storage.removeItem(key);
             return null;
         }
-
-        console.log(`Данные получены из кэша: ${key}`);
         return cacheItem.data;
     } catch (error) {
         console.error(`Ошибка при получении из кэша: ${key}`, error);
@@ -71,18 +68,14 @@ const getFromCache = <T>(key: string, persistent: boolean): T | null => {
 
 // Функция для инвалидации кэша
 export const invalidateApiCache = (url: string, config: any, customKey?: string): void => {
-    // Если передан пользовательский ключ или префикс, используем его
     if (customKey) {
-        // Если ключ заканчивается на '*', это префикс
         if (customKey.endsWith('*')) {
-            const prefix = customKey.slice(0, -1); // Убираем *
-            console.log(`Инвалидация кэша по префиксу: ${prefix}`);
+            const prefix = customKey.slice(0, -1);
 
             // Проверяем localStorage
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.startsWith(`app_cache:${prefix}`)) {
-                    console.log(`Инвалидация кэша: ${key}`);
                     localStorage.removeItem(key);
                 }
             }
@@ -91,7 +84,6 @@ export const invalidateApiCache = (url: string, config: any, customKey?: string)
             for (let i = 0; i < sessionStorage.length; i++) {
                 const key = sessionStorage.key(i);
                 if (key && key.startsWith(`app_cache:${prefix}`)) {
-                    console.log(`Инвалидация кэша: ${key}`);
                     sessionStorage.removeItem(key);
                 }
             }
@@ -115,7 +107,6 @@ export const invalidateApiCache = (url: string, config: any, customKey?: string)
 
     // Стандартный вариант с генерацией ключа по URL
     const cacheKey = generateCacheKey(url, config);
-    console.log(`Инвалидация кэша: ${cacheKey}`);
 
     try {
         localStorage.removeItem(cacheKey);
@@ -145,7 +136,6 @@ export const clearAllApiCache = (): void => {
 
             keysToRemove.forEach(key => {
                 storage.removeItem(key);
-                console.log(`Удален кэш: ${key}`);
             });
         });
     } catch (error) {
@@ -230,7 +220,6 @@ export const invalidateApiCacheByUrlPrefix = (
             const key = storage.key(i);
             if (key && key.startsWith(`app_cache:${urlPrefix}`)) {
                 storage.removeItem(key);
-                console.log(`Инвалидирован кэш: ${key}`);
             }
         }
     });
@@ -253,15 +242,12 @@ export const clearAllCache = (): void => {
 
         keysToRemove.forEach(key => {
             storage.removeItem(key);
-            console.log(`Удален кэш: ${key}`);
         });
     });
 };
 
 // Функция для очистки абсолютно всего хранилища
 export const clearAllStorage = (): void => {
-    console.log('Полная очистка всего localStorage и sessionStorage');
-
     try {
         // Сохраним токен авторизации
         const authToken = localStorage.getItem('auth_token');
@@ -274,8 +260,6 @@ export const clearAllStorage = (): void => {
         if (authToken) {
             localStorage.setItem('auth_token', authToken);
         }
-
-        console.log('Хранилище полностью очищено');
     } catch (error) {
         console.error('Ошибка при полной очистке хранилища:', error);
     }

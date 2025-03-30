@@ -1,21 +1,22 @@
 <template>
     <div class="min-h-screen">
-        <div class="container mx-auto px-1 lg:px-2 py-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Основная секция -->
-                <div class="lg:col-span-2" v-if="video">
+        <div class="container mx-auto px-4 py-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Основная секция с видео и информацией -->
+                <div class="lg:col-span-8" v-if="video">
                     <video-player :video="video" />
                     <video-info :video="video" />
-                    <channel-info :user="user" :video="video" class="mb-3" />
+                    <channel-info :user="user" :video="video" class="mb-6" />
                     <Comments :video_id="video.id" :user_id="user_id" :video_userId="video.user_id" />
                 </div>
 
-                <div class="lg:col-span-2" v-else="video">
-                    У вас нет доступа к видео
+                <div v-else class="lg:col-span-8 p-8 bg-[#1e1e1e]/60 rounded-lg text-center">
+                    <div class="text-xl font-medium text-gray-300 mb-2">У вас нет доступа к видео</div>
+                    <p class="text-gray-400 text-sm">Возможно, видео было удалено или имеет ограниченный доступ</p>
                 </div>
 
-                <!-- Рекомендации -->
-                <div class="lg:col-span-1">
+                <!-- Рекомендации и похожие видео -->
+                <div class="lg:col-span-4">
                     <related-videos :videos="relatedVideos" />
                 </div>
             </div>

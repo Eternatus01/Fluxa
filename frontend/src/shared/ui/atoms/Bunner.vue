@@ -1,11 +1,10 @@
 <template>
-    <div>
-        <img class="h-100 bg-cover bg-center container mx-auto rounded-xl" :src="src" alt="">
-        <div class="absolute inset-0 bg-black opacity-36 rounded-lg"></div>
+    <div class="banner-wrapper">
+        <img class="banner-image" :src="src" alt="Channel Banner">
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineProps({
     src: {
         type: String,
@@ -13,3 +12,24 @@ defineProps({
     },
 });
 </script>
+
+<style scoped>
+.banner-wrapper {
+    width: 100%;
+    position: relative;
+    padding-top: 33.33%;
+    /* Соотношение 16:9 (9/16*100% ≈ 56.25%), но немного ниже для лучшего вида */
+    overflow: hidden;
+}
+
+.banner-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+    /* Немного выше центра */
+}
+</style>

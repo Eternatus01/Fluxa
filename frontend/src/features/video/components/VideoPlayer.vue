@@ -1,6 +1,6 @@
 <template>
-    <div class="relative mb-6">
-        <video controls class="w-full rounded-lg h-150">
+    <div class="relative mb-6 overflow-hidden rounded-lg shadow-xl">
+        <video controls class="w-full h-auto aspect-video bg-black/90" preload="metadata">
             <source :src="video.video_url" type="video/mp4">
             Ваш браузер не поддерживает видео.
         </video>

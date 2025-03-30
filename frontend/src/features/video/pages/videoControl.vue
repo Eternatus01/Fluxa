@@ -1,15 +1,30 @@
 <template>
-    <div class="min-h-screen text-white">
-        <main class="pt-12 px-4 container mx-auto">
-            <div v-if="videoData" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="min-h-screen">
+        <main class="container mx-auto px-4 py-8">
+            <div v-if="videoData" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Левая колонка - Форма редактирования -->
-                <VideoEditForm :video="videoData" :is-saving="isSaving" @save="handleSave" @reset="handleReset" />
+                <div class="lg:col-span-7 xl:col-span-8">
+                    <VideoEditForm :video="videoData" :is-saving="isSaving" @save="handleSave" @reset="handleReset" />
+                </div>
 
                 <!-- Правая колонка - Предпросмотр -->
-                <VideoPreview :video="videoData" />
+                <div class="lg:col-span-5 xl:col-span-4">
+                    <VideoPreview :video="videoData" />
+                </div>
             </div>
-            <div v-else class="text-center py-8">
-                <p class="text-gray-400">Загрузка данных видео...</p>
+
+            <div v-else class="flex items-center justify-center min-h-[50vh]">
+                <div class="text-center bg-[#1e1e1e]/60 p-10 rounded-lg max-w-md">
+                    <div class="animate-pulse">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-blue-500" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <p class="text-gray-300 text-lg mb-2">Загрузка данных видео</p>
+                    <p class="text-gray-400 text-sm">Пожалуйста, подождите...</p>
+                </div>
             </div>
         </main>
     </div>
@@ -17,7 +32,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useVideoStore } from '../stores/videoStore'
 import { useUserStore } from '../../user/stores/userStore'
 import VideoEditForm from '../components/control/VideoEditForm.vue'
@@ -25,6 +40,7 @@ import VideoPreview from '../components/control/VideoPreview.vue'
 import type { Video } from '../types/videoTypes'
 
 const route = useRoute()
+const router = useRouter()
 const videoStore = useVideoStore()
 const userStore = useUserStore()
 
@@ -37,6 +53,14 @@ onMounted(async () => {
         // Получаем ID пользователя из хранилища или используем пустую строку как запасной вариант
         const userId = userStore.user?.id || '';
         const video = await videoStore.fetchVideo(route.params.id as string, userId)
+
+        // Проверяем, принадлежит ли видео текущему пользователю
+        if (userStore.user?.id !== video.user_id) {
+            // Если нет, перенаправляем на страницу просмотра
+            router.push(`/watch/${video.id}`);
+            return;
+        }
+
         videoData.value = video
     } catch (error) {
         console.error("Ошибка при загрузке данных видео:", error)

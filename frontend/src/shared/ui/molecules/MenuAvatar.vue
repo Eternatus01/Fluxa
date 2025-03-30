@@ -1,6 +1,6 @@
 <template>
     <div class="relative">
-        <img :src="channelAvatar" class="w-8 h-8 object-cover rounded-full ml-4 cursor-pointer bg-cover" alt="Аватар"
+        <img :src="channelAvatar" class="w-10 h-10 object-cover rounded-full ml-4 cursor-pointer bg-cover" alt="Аватар"
             @click="toggleMenu" />
         <Menu :is-menu-open="isMenuOpen"></Menu>
     </div>

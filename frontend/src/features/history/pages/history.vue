@@ -30,17 +30,21 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="min-h-screen">
-        <header class="p-6">
-            <h1 class="text-3xl font-bold">История просмотров</h1>
-        </header>
+    <div class="min-h-screen text-white">
+        <div class="max-w-screen-2xl mx-auto px-4 py-8">
+            <header class="mb-8">
+                <h1 class="text-2xl md:text-3xl font-bold text-white">История просмотров</h1>
+                <p class="text-gray-400 mt-2 text-sm">Список видео, которые вы недавно смотрели</p>
+            </header>
 
-        <LoadingState v-if="isLoading" message="Загрузка истории просмотров..." />
+            <LoadingState v-if="isLoading" message="Загрузка истории просмотров..." />
 
-        <ErrorState v-else-if="error" :message="error.message || 'Произошла ошибка при загрузке истории просмотров'" />
+            <ErrorState v-else-if="error"
+                :message="error.message || 'Произошла ошибка при загрузке истории просмотров'" />
 
-        <main v-else class="px-4">
-            <HistoryList :history="history" />
-        </main>
+            <main v-else class="pb-10">
+                <HistoryList :history="history" />
+            </main>
+        </div>
     </div>
 </template>

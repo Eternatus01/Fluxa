@@ -30,10 +30,13 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-    <form @submit.prevent="handleSubmit" class="space-y-4">
-        <AuthInput v-model="email" type="email" placeholder="Email" />
-        <AuthInput v-model="password" type="password" placeholder="Пароль" />
-        <div class="flex flex-col gap-4 items-center">
+    <form @submit.prevent="handleSubmit" class="login-form">
+        <div class="form-fields">
+            <AuthInput v-model="email" type="email" placeholder="Email" />
+            <AuthInput v-model="password" type="password" placeholder="Пароль" />
+        </div>
+
+        <div class="form-actions">
             <AuthButton :is-loading="isLoading" text="Вход" />
             <AuthError :error="error" />
         </div>
@@ -41,7 +44,43 @@ const handleSubmit = async () => {
 </template>
 
 <style scoped>
-.space-y-4> :not([hidden])~ :not([hidden]) {
-    margin-top: 1rem;
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-fields> :nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.form-fields> :nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    animation: actionsAppear 0.5s ease-out 0.3s both;
+}
+
+@keyframes actionsAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 </style>

@@ -96,29 +96,30 @@ const resetForm = () => {
 </script>
 
 <template>
-    <section class="bg-gray-800 rounded-xl p-6 shadow-2xl">
-        <h1 class="text-3xl font-bold mb-8">Управление видео</h1>
+    <section class="bg-[#1e1e1e]/60 rounded-lg p-6 md:p-8 shadow-lg mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold mb-6 text-white">Управление видео</h1>
 
         <form @submit.prevent="saveChanges" class="space-y-6">
             <!-- Секция основной информации -->
-            <div class="space-y-4">
-                <h2 class="text-xl font-semibold text-gray-300">Основная информация</h2>
+            <div class="space-y-5">
+                <h2 class="text-lg font-semibold text-gray-200 pb-2 border-b border-gray-700/50">Основная информация
+                </h2>
 
                 <!-- Название видео -->
                 <div>
-                    <label class="block text-sm font-medium mb-2">Название</label>
+                    <label class="block text-sm font-medium mb-2 text-gray-200">Название</label>
                     <input v-model="videoData.title" type="text"
-                        class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        :class="{ 'border-red-500': errors.title }">
+                        class="w-full p-3 bg-[#252525] rounded-lg border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-white"
+                        :class="{ 'border-red-500 focus:ring-red-500': errors.title }">
                     <p v-if="errors.title" class="text-red-400 text-sm mt-1">{{ errors.title }}</p>
                 </div>
 
                 <!-- Описание -->
                 <div>
-                    <label class="block text-sm font-medium mb-2">Описание</label>
+                    <label class="block text-sm font-medium mb-2 text-gray-200">Описание</label>
                     <textarea v-model="videoData.description" rows="4"
-                        class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        :class="{ 'border-red-500': errors.description }"></textarea>
+                        class="w-full p-3 bg-[#252525] rounded-lg border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-white"
+                        :class="{ 'border-red-500 focus:ring-red-500': errors.description }"></textarea>
                     <div class="flex justify-between mt-1">
                         <p v-if="errors.description" class="text-red-400 text-sm">{{ errors.description }}</p>
                         <span class="text-gray-400 text-sm">{{ descriptionLength }}/5000</span>
@@ -126,35 +127,55 @@ const resetForm = () => {
                 </div>
             </div>
 
-            <!-- Секция миниатюры -->
-            <ThumbnailUpload :current-thumbnail="videoData.thumbnail_url" @file-selected="handleThumbnailSelected" />
+            <!-- Секции в две колонки на больших экранах -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Секция миниатюры -->
+                <ThumbnailUpload :current-thumbnail="videoData.thumbnail_url"
+                    @file-selected="handleThumbnailSelected" />
 
-            <!-- Секция настроек -->
-            <div class="space-y-4">
-                <h2 class="text-xl font-semibold text-gray-300">Настройки</h2>
+                <!-- Секция настроек -->
+                <div class="space-y-5">
+                    <h2 class="text-lg font-semibold text-gray-200 pb-2 border-b border-gray-700/50">Настройки</h2>
 
-                <div>
-                    <label class="block text-sm font-medium mb-2">Видимость</label>
-                    <select v-model="videoData.videoType"
-                        class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:ring-2 focus:ring-red-500">
-                        <option value="public">Публичное</option>
-                        <option value="link">Ссылочное</option>
-                        <option value="private">Приватное</option>
-                    </select>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-gray-200">Видимость</label>
+                        <select v-model="videoData.videoType"
+                            class="w-full p-3 bg-[#252525] rounded-lg border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-white">
+                            <option value="public">Публичное</option>
+                            <option value="link">Ссылочное</option>
+                            <option value="private">Приватное</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">
+                            <span v-if="videoData.videoType === 'public'">Видео будет доступно всем пользователям</span>
+                            <span v-else-if="videoData.videoType === 'private'">Видео будет доступно только вам</span>
+                            <span v-else>Видео будет доступно только по прямой ссылке</span>
+                        </p>
+                    </div>
+
+                    <TagsInput v-model="tagsInput" :error="errors.tags" @update:modelValue="updateTags" />
                 </div>
-
-                <TagsInput v-model="tagsInput" :error="errors.tags" @update:modelValue="updateTags" />
             </div>
 
             <!-- Кнопки управления -->
-            <div class="flex justify-end gap-4 pt-6">
+            <div class="flex flex-wrap justify-end gap-4 pt-4">
                 <button type="button" @click="resetForm"
-                    class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition-colors">
+                    class="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all text-gray-100">
                     Сбросить
                 </button>
                 <button type="submit" :disabled="isSaving"
-                    class="px-6 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors disabled:opacity-50">
-                    {{ isSaving ? 'Сохранение...' : 'Сохранить изменения' }}
+                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-lg transition-all text-white font-medium disabled:opacity-70 disabled:cursor-not-allowed">
+                    <span v-if="isSaving">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        Сохранение...
+                    </span>
+                    <span v-else>Сохранить изменения</span>
                 </button>
             </div>
         </form>

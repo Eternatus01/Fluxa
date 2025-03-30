@@ -37,11 +37,33 @@ onMounted(fetchSubscriptions);
 </script>
 
 <template>
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-2xl font-bold mb-8">Мои подписки</h1>
+    <div class="min-h-screen bg-[#0f0f0f]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <h1 class="text-2xl font-bold text-white mb-6">Мои подписки</h1>
 
-        <LoadingState v-if="isLoading" />
-        <ErrorState v-else-if="error" :message="error.message" />
-        <SubscriptionList v-else :subscriptions="subscriptions" />
+            <div class="rounded-xl overflow-hidden">
+                <LoadingState v-if="isLoading" />
+                <ErrorState v-else-if="error" :message="error.message" />
+                <SubscriptionList v-else :subscriptions="subscriptions" class="animate-fade-in" />
+            </div>
+        </div>
     </div>
 </template>
+
+<style scoped>
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+</style>

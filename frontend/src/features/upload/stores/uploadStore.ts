@@ -1,5 +1,5 @@
 import { useUploadApi } from "../../upload/composable/useUploadApi";
-import { useVideoStore } from "./videoStore";
+import { useVideoStore } from "@/features/video/stores/videoStore";
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 

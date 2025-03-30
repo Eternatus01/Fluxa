@@ -13,13 +13,10 @@ export interface Video {
   created_at: string;
   thumbnail_url: string;
   video_url: string;
-  user?: {
-    id: string;
-    username: string | null;
-    channel_name: string;
-    avatar_url: string;
-    subscribers_count: number;
-  };
+  username: string | null;
+  channel_name: string;
+  avatar_url: string;
+  subscribers_count: number;
   tags?: string[];
   videoType?: string;
   duration?: number;

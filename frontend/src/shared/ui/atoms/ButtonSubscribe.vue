@@ -1,9 +1,7 @@
 <template>
-    <button @click="toggleSubscription" :class="[
-        'px-4 py-2 rounded-full transition-colors duration-300 cursor-pointer',
-        isSubscribed ? 'bg-gray-600 hover:bg-gray-500' : 'bg-red-700 hover:bg-red-600',
-    ]" v-if="userStore.user_id !== id">
-        {{ isSubscribed ? 'Отписаться' : 'Подписаться' }}
+    <button @click="toggleSubscription" class="subscribe-button" :class="{ 'subscribed': isSubscribed }"
+        v-if="userStore.user_id !== id">
+        <span class="button-text">{{ isSubscribed ? 'Отписаться' : 'Подписаться' }}</span>
     </button>
 </template>
 
@@ -28,3 +26,42 @@ const toggleSubscription = async () => {
 
 onMounted(async () => userStore.user_id !== props.id ? isSubscribed.value = await subscriptionStore.checkSubscription(props.id) : null);
 </script>
+
+<style scoped>
+.subscribe-button {
+    padding: 0.625rem 1.25rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #3b82f6;
+    color: white;
+    font-size: 0.9375rem;
+    transform: translateY(0);
+}
+
+.subscribe-button:hover {
+    background-color: #2563eb;
+    transform: translateY(-2px);
+}
+
+.subscribe-button:active {
+    transform: translateY(0);
+}
+
+.subscribe-button.subscribed {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.subscribe-button.subscribed:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.button-text {
+    position: relative;
+    z-index: 10;
+}
+</style>

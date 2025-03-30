@@ -1,27 +1,38 @@
 <template>
-    <div class="flex flex-col gap-4 bg-gray-900 p-4 rounded-lg" v-if="user">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <router-link :to="{ name: 'Channel', params: { username: user.username } }">
-                    <Avatar :src="user.avatar_url" />
+    <div class="bg-[#1e1e1e]/60 rounded-lg overflow-hidden" v-if="user">
+        <!-- Верхняя часть с информацией о канале -->
+        <div class="p-4 md:p-5 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <router-link :to="{ name: 'Channel', params: { username: user.username } }" class="flex-shrink-0">
+                    <Avatar :src="user.avatar_url"
+                        class="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-transparent hover:border-blue-500/50 transition-all duration-300" />
                 </router-link>
                 <div>
-                    <h3 class="text-lg font-semibold">{{ user.channel_name }}</h3>
+                    <router-link :to="{ name: 'Channel', params: { username: user.username } }" class="group">
+                        <h3 class="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors">{{
+                            user.channel_name }}</h3>
+                    </router-link>
                     <p class="text-gray-400 text-sm">{{ user.subscribers_count }} подписчиков</p>
                 </div>
             </div>
-            <button-subscribe :id="user.id"></button-subscribe>
-            <button-edit-video :user_id="user.id" :video_id="video.id"></button-edit-video>
+
+            <div class="flex items-center gap-3">
+                <button-subscribe :id="user.id" class="flex-shrink-0"></button-subscribe>
+                <button-edit-video :user_id="user.id" :video_id="video.id" class="flex-shrink-0"></button-edit-video>
+            </div>
         </div>
-        <div>
-            <div class="video-description">
+
+        <!-- Нижняя часть с описанием и тегами -->
+        <div class="px-4 md:px-5 pb-5" v-if="video.description || video.tags?.length">
+            <div class="text-gray-300 video-description mt-1 mb-4 text-sm leading-relaxed" v-if="video.description">
                 {{ video.description }}
             </div>
-            <div v-if="video.tags?.length" class="mb-6">
-                <h3 class="mb-2 mt-4">Теги видео:</h3>
+
+            <div v-if="video.tags?.length" class="mt-4">
+                <h3 class="text-sm font-medium text-gray-400 mb-2">Теги:</h3>
                 <div class="flex flex-wrap gap-2">
                     <span v-for="(tag, index) in video.tags" :key="index"
-                        class="text-gray-900 inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 hover:bg-gray-300 transition-colors cursor-pointer">
+                        class="bg-[#252525] text-blue-400 inline-flex items-center px-3 py-1 rounded-full text-xs hover:bg-[#303030] transition-colors cursor-pointer">
                         #{{ tag }}
                     </span>
                 </div>

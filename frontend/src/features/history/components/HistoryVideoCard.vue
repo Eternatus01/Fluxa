@@ -1,27 +1,45 @@
 <template>
-    <router-link :to="getUrl(item.video.id)" class="group bg-dark-200 rounded-xl overflow-hidden hover:bg-dark-300 transition-all duration-300">
-        <div class="rounded-lg shadow">
-            <div class="relative aspect-video overflow-hidden">
-                <img :src="item.video.thumbnail_url"
-                    class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-                    alt="Video Thumbnail">
+    <router-link :to="getUrl(item.video.id)"
+        class="group block bg-[#1e1e1e]/60 rounded-lg overflow-hidden hover:bg-[#252525]/70 transition-all duration-300">
+        <!-- Thumbnail with overlay -->
+        <div class="relative aspect-video overflow-hidden">
+            <img :src="item.video.thumbnail_url" :alt="item.video.title"
+                class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:filter group-hover:brightness-110" />
+
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             </div>
-            <div class="py-4">
-                <div class="flex gap-3">
-                    <img v-if="item.video.user.avatar_url" :src="item.video.user.avatar_url"
-                        class="w-10 h-10 rounded-full object-cover" alt="Channel Avatar">
-                    <div>
-                        <h3 class="text-white font-medium leading-snug mb-1 truncate group-hover:text-primary-400">{{
-                            item.video.title }}</h3>
-                        <p class="text-gray-400 text-sm truncate">{{ item.video.user.channel_name }}</p>
-                        <div class="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                            <span>{{ formattedViews }}</span>
-                            <span>•</span>
-                            <span>{{ formattedDate }}</span>
-                        </div>
-                        <p class="text-gray-500 text-xs mt-1">
-                            Просмотрено: {{ timeAgo(item.watched_at) }}
-                        </p>
+
+            <div class="absolute bottom-3 right-3 bg-black/80 backdrop-blur-[2px] text-white px-2 py-0.5 rounded-md text-xs font-medium shadow-sm">
+                10:24
+            </div>
+        </div>
+
+        <div class="flex gap-3 p-3">
+            <div class="relative">
+                <img :src="item.video.user.avatar_url"
+                    class="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500/50 transition-all duration-300" />
+            </div>
+
+            <div class="flex-1 min-w-0">
+                <h3
+                    class="font-medium text-sm text-white line-clamp-2 leading-tight mb-1.5 group-hover:text-blue-400 transition-colors duration-300">
+                    {{ item.video.title }}
+                </h3>
+
+                <div class="flex flex-col gap-1">
+                    <p class="text-xs text-gray-300 truncate group-hover:text-gray-200 transition-colors duration-300">
+                        {{ item.video.user.channel_name }}
+                    </p>
+
+                    <div class="flex items-center text-[11px] text-gray-400 gap-2">
+                        <span>{{ formattedViews }}</span>
+                        <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
+                        <span>{{ formattedDate }}</span>
+                    </div>
+
+                    <div class="text-[11px] text-gray-500 mt-0.5">
+                        Просмотрено: {{ timeAgo(item.watched_at) }}
                     </div>
                 </div>
             </div>

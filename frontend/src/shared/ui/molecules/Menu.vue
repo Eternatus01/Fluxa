@@ -1,9 +1,9 @@
 <template>
-    <div v-if="isMenuOpen" class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg z-10 animate-fadeIn">
+    <div v-if="isMenuOpen" class="absolute right-0 mt-2 w-48 bg-[#1e1e1e] rounded-lg shadow-lg z-10 animate-fadeIn">
         <ul class="py-2">
             <li v-for="(link, index) of menuLinks" :key="index">
                 <router-link :to="getRoute(link)"
-                    class="block px-4 py-2 text-white hover:bg-gray-700 hover:text-red-500">
+                    class="block px-4 py-2 text-white hover:bg-gray-700 hover:text-blue-500">
                     {{ link.text }}
                 </router-link>
             </li>

@@ -26,14 +26,17 @@ const handleInput = (event: Event) => {
 
 <template>
     <div>
-        <label class="block text-sm font-medium mb-2">Теги (через запятую)</label>
-        <input type="text" :value="inputValue" @input="handleInput" :class="{ 'border-red-500': error }"
-            class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:ring-2 focus:ring-red-500">
+        <label class="block text-sm font-medium mb-2 text-gray-200">Теги (через запятую)</label>
+        <input type="text" :value="inputValue" @input="handleInput"
+            class="w-full p-3 bg-[#252525] rounded-lg border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-white"
+            :class="{ 'border-red-500 focus:ring-red-500': error }" placeholder="gaming, tutorial, vlog">
         <p v-if="error" class="text-red-400 text-sm mt-1">{{ error }}</p>
-        <div class="mt-2 flex flex-wrap gap-2" v-if="inputValue">
+        <p class="text-xs text-gray-400 mt-1">Разделяйте теги запятыми. Максимум 15 тегов.</p>
+
+        <div class="mt-3 flex flex-wrap gap-2" v-if="inputValue">
             <span v-for="tag in inputValue.split(',').map(t => t.trim()).filter(t => t.length > 0)" :key="tag"
-                class="px-2 py-1 bg-gray-600 rounded-lg text-sm">
-                {{ tag }}
+                class="px-3 py-1 bg-[#252525] rounded-full text-xs text-blue-400">
+                #{{ tag }}
             </span>
         </div>
     </div>
