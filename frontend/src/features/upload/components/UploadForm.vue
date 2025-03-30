@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import FileUploadField from './FileUploadField.vue';
 import UploadProgress from './UploadProgress.vue';
-import type { VideoUploadParams } from '../../types/videoTypes';
+import type { VideoUploadParams } from '../../video/types/videoTypes';
 
 const emit = defineEmits<{
     (e: 'submit', data: VideoUploadParams): void;

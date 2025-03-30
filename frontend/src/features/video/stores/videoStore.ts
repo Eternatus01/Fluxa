@@ -1,20 +1,7 @@
 import { useVideoApi } from "../composable/useVideoApi";
 import { defineStore } from 'pinia';
 import { computed, ref, type Ref } from "vue";
-
-interface Video {
-    id: string;
-    title: string;
-    video_url: string;
-    thumbnail_url: string;
-    views: number;
-    likes_count: number;
-    dislikes_count: number;
-    created_at: string;
-    user_id: string;
-    description: string;
-    tags: string[];
-}
+import { Video, VideoError } from "../types/videoTypes";
 
 interface VideoUpdate {
     video_id: string;
@@ -58,16 +45,16 @@ export const useVideoStore = defineStore("video", () => {
     const updateViewCount = (videoId: string) => {
         // Обновляем в текущем видео
         if (video.value?.id === videoId) {
-            video.value.views = (video.value.views || 0) + 1;
+            video.value.views = ((video.value.views || 0) + 1);
         }
 
         // Обновляем в списках
         videos.value = updateVideoInList(videos.value, videoId, {
-            views: (videos.value?.find(v => v.id === videoId)?.views || 0) + 1
+            views: ((videos.value?.find(v => v.id === videoId)?.views || 0) + 1)
         });
 
         videosUser.value = updateVideoInList(videosUser.value, videoId, {
-            views: (videosUser.value?.find(v => v.id === videoId)?.views || 0) + 1
+            views: ((videosUser.value?.find(v => v.id === videoId)?.views || 0) + 1)
         });
     };
 

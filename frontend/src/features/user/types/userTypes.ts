@@ -12,33 +12,27 @@ export type LoadingStatus = 'idle' | 'loading' | 'success' | 'error';
 
 // Основные данные пользователя
 export interface UserData {
-  id: string;
-  username: string | null;
-  channel_name: string;
-  avatar_url: string | null;
-  bunner_url: string | null;
+  id: UserId;
+  username: Username | null;
+  channel_name: ChannelName;
+  avatar_url: ImageUrl;
+  bunner_url: ImageUrl;
   subscribers_count: number;
   email?: string;
   created_at?: string;
   updated_at?: string;
 }
 
-// Ответы API
+// Общий тип ответа API
 export interface ApiResponse<T> {
   data: T;
   message?: string;
   status?: number;
 }
 
-export interface UserResponse extends UserData {
-  message?: string;
-  status?: number;
-}
-
-export interface UsersResponse extends Array<UserData> {
-  message?: string;
-  status?: number;
-}
+// Типизированные ответы API для пользователей
+export type UserResponse = ApiResponse<UserData>;
+export type UsersResponse = ApiResponse<UserData[]>;
 
 // Ошибки
 export interface UserError {
@@ -50,35 +44,35 @@ export interface UserError {
 
 // Параметры запросов
 export interface UpdateUserProfileParams {
-  id: string;
-  username?: string;
-  channel_name?: string;
-  avatar_url?: string | null;
-  bunner_url?: string | null;
+  id: UserId;
+  username?: Username | null;
+  channel_name?: ChannelName;
+  avatar_url?: ImageUrl;
+  bunner_url?: ImageUrl;
 }
 
 export interface UpdateUserAvatarParams {
-  id: string;
+  id: UserId;
   file: File;
   filePath: string;
 }
 
 export interface UpdateUserBannerParams {
-  id: string;
+  id: UserId;
   file: File;
   filePath: string;
 }
 
 export interface GetUserByIdParams {
-  id: string;
+  id: UserId;
 }
 
 export interface GetUsersByIdParams {
-  ids: string[];
+  ids: UserId[];
 }
 
 export interface GetUserByUsernameParams {
-  username: string;
+  username: Username;
 }
 
 // Кэш пользователей
@@ -89,6 +83,23 @@ export interface UsersCache {
 export interface UsernameToIdMap {
   [key: Username]: UserId;
 }
+
+// Валидационные константы
+export const USER_CONSTRAINTS = {
+  USERNAME: {
+    MIN_LENGTH: 3,
+    MAX_LENGTH: 30,
+    PATTERN: /^[a-zA-Z0-9_]+$/
+  },
+  CHANNEL_NAME: {
+    MIN_LENGTH: 2,
+    MAX_LENGTH: 50
+  },
+  FILE: {
+    MAX_SIZE: 5 * 1024 * 1024, // 5MB
+    ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const
+  }
+} as const;
 
 // Состояние хранилища
 export interface UserState {
@@ -102,58 +113,40 @@ export interface UserState {
   usernameToIdMap: UsernameToIdMap;
   status: LoadingStatus;
   error: UserError | null;
+  isLoading: boolean; // Добавлено для совместимости со store
 }
 
-export const USER_CONSTRAINTS = {
-  USERNAME: {
-    MIN_LENGTH: 3,
-    MAX_LENGTH: 30,
-    PATTERN: /^[a-zA-Z0-9_]+$/
-  },
-  CHANNEL_NAME: {
-    MIN_LENGTH: 2,
-    MAX_LENGTH: 50
-  },
-  FILE: {
-    MAX_SIZE: 5 * 1024 * 1024,
-    ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp'] as const
-  }
-} as const;
-
-// Validation constants
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-export const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
-
-// Store type
-export type UserStoreState = {
-  user: UserData | null;
-  token: string | null;
-  avatar_url: string;
-  bunner_url: string;
-  channel_name: string;
-  user_id: string;
-  usersCache: Record<string, UserData>;
-  usernameToIdMap: Record<string, string>;
-  status: LoadingStatus;
-  error: UserError | null;
-};
-
+// Store types
 export type UserStoreGetters = {
   isAuthenticated: ComputedRef<boolean>;
   isLoading: ComputedRef<boolean>;
-  currentUser: ComputedRef<UserData | null>;
-  currentError: ComputedRef<UserError | null>;
+  user: ComputedRef<UserData | null>;
+  token: ComputedRef<string | null>;
+  avatar_url: ComputedRef<string>;
+  bunner_url: ComputedRef<string>;
+  channel_name: ComputedRef<string>;
+  user_id: ComputedRef<UserId>;
+  error: ComputedRef<UserError | null>;
+  usersCache: ComputedRef<UsersCache>;
+  username: ComputedRef<Username>;
+  subscribers_count: ComputedRef<number>;
 };
 
 export type UserStoreActions = {
   updateUserState: (userData: UserData | null) => void;
   clearUser: () => void;
+  clearCache: () => void;
   setToken: (token: string | null) => void;
   fetchUser: () => Promise<UserData>;
   getUserById: (userId: UserId) => Promise<UserData>;
   getUsersById: (userIds: UserId[]) => Promise<UserData[]>;
   getUserByUsername: (username: Username) => Promise<UserData>;
   updateUserProfile: (params: UpdateUserProfileParams) => Promise<UserData>;
+  setUser: (userData: UserData) => void;
+  setAvatar: (url: string) => void;
+  setBunner: (url: string) => void;
+  setChannelName: (name: ChannelName) => void;
+  logout: () => void;
 };
 
-export type UserStore = Store<"user", UserStoreState, UserStoreGetters, UserStoreActions>; 
+export type UserStore = Store<"user", UserState, UserStoreGetters, UserStoreActions>; 

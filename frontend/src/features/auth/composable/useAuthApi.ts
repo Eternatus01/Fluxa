@@ -1,17 +1,25 @@
 import { apiClientWithCache, invalidateApiCache } from '../../../shared/api/apiClientWithCache';
 import { useApiWithCache } from '../../../shared/composables/useApiWithCache';
+import {
+    SignUpParams,
+    SignInParams,
+    SignUpResponse,
+    SignInResponse,
+    AuthError,
+    Email,
+    Password,
+    ApiResponse,
+    GetCurrentUserResponse
+} from '../types/authTypes';
+import { UserData, ChannelName, Username } from '../../user/types/userTypes';
+import { useUserStore } from '@/features/user/stores/userStore';
 
-interface UserData {
-    id: string;
-    email: string;
-    username: string;
-    channel_name: string;
-    avatar_url?: string;
-    bunner_url?: string;
-}
-
+// Определяем тип для ошибок API
 interface ErrorMessage {
     message?: string;
+    status?: number;
+    field?: string;
+    code?: string;
 }
 
 export const useAuthApi = () => {
@@ -24,43 +32,50 @@ export const useAuthApi = () => {
     });
 
     // Регистрация
-    const signUp = async (email: string, password: string, username: string, channel_name: string): Promise<UserData> => {
+    const signUp = async (
+        email: Email,
+        password: Password,
+        username: Username,
+        channel_name: ChannelName
+    ): Promise<UserData> => {
         try {
-            const postData = {
-                email: email,
-                password: password,
-                username: username,
-                channel_name: channel_name
+            const postData: SignUpParams = {
+                email,
+                password,
+                username,
+                channel_name
             };
 
-            console.log('Отправка данных для регистрации:', postData);
+            const { data } = await api.post<SignUpResponse>('/signup', postData);
 
-            const { data } = await api.post<{ user: UserData }>('/signup', postData);
-
-            if (!data.value) {
+            if (!data.value || !data.value.data || !data.value.data.user) {
                 throw new Error('Не удалось получить данные пользователя');
             }
 
             return data.value.user;
         } catch (error) {
             const err = error as ErrorMessage;
-            throw new Error(err?.message || 'Не удалось зарегистрироваться');
+            const authError: AuthError = {
+                message: err?.message || 'Не удалось зарегистрироваться',
+                status: err?.status || 500,
+                field: err?.field,
+                code: err?.code
+            };
+            throw authError;
         }
     };
 
     // Вход
-    const signIn = async (email: string, password: string): Promise<UserData> => {
+    const signIn = async (email: Email, password: Password): Promise<UserData> => {
         try {
-            const postData = {
-                email: email,
-                password: password
+            const postData: SignInParams = {
+                email,
+                password
             };
 
-            console.log('Отправка данных для входа:', postData);
+            const { data } = await api.post<SignInResponse>('/signin', postData);
 
-            const { data } = await api.post<{ user: UserData }>('/signin', postData);
-
-            if (!data.value) {
+            if (!data.value || !data.value.user) {
                 throw new Error('Не удалось получить данные пользователя');
             }
 
@@ -75,11 +90,18 @@ export const useAuthApi = () => {
                     ttl: 24 * 60 * 60 * 1000 // 24 часа
                 }
             );
-
+            const userStore = useUserStore();
+            userStore.fetchUser();
             return data.value.user;
         } catch (error) {
             const err = error as ErrorMessage;
-            throw new Error(err?.message || 'Неверные учетные данные.');
+            const authError: AuthError = {
+                message: err?.message || 'Неверные учетные данные.',
+                status: err?.status || 500,
+                field: err?.field,
+                code: err?.code
+            };
+            throw authError;
         }
     };
 
@@ -87,22 +109,30 @@ export const useAuthApi = () => {
     const signOut = async (): Promise<void> => {
         try {
             await api.post<void>('/signout', {});
+
             // Инвалидируем кэши текущего пользователя
             invalidateApiCache('http://localhost:3001/api/user/me', { method: 'GET' }, 'user:currentUser');
             invalidateApiCache('http://localhost:3001/api/user/me', { method: 'GET' }, 'user:current');
 
-            // Чистим все возможные кэши пользователя
+            // Чистим все возможные кэши пользователя при выходе
             console.log('Очистка всех кэшей пользователя при выходе');
         } catch (error) {
             const err = error as ErrorMessage;
-            throw new Error(err?.message || 'Не удалось выйти');
+            const authError: AuthError = {
+                message: err?.message || 'Не удалось выйти',
+                status: err?.status || 500,
+                field: err?.field,
+                code: err?.code
+            };
+            throw authError;
         }
     };
 
     // Получение текущего пользователя (с кэшированием)
     const getCurrentUser = async (): Promise<UserData | null> => {
         try {
-            const { data } = await userApi.get<UserData | { user: UserData }>('/me', {}, {
+            // Используем тип GetCurrentUserResponse, который соответствует фактической структуре
+            const { data } = await userApi.get<GetCurrentUserResponse>('/me', {}, {
                 persistent: true,
                 ttl: 24 * 60 * 60 * 1000, // 24 часа
                 key: 'user:currentUser'
@@ -112,14 +142,9 @@ export const useAuthApi = () => {
                 return null;
             }
 
-            // Проверяем формат ответа
-            if ('user' in data.value) {
-                return data.value.user;
-            } else if ('id' in data.value) {
-                return data.value as UserData;
-            }
-
-            return null;
+            // Сохраняем исходную логику, но указываем правильный тип
+            // return data.value.data;
+            return data.value as unknown as UserData;
         } catch (error) {
             return null;
         }

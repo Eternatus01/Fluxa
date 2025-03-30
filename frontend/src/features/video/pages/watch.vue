@@ -32,7 +32,7 @@ import VideoInfo from '../components/VideoInfo.vue';
 import ChannelInfo from '../components/ChannelInfo.vue';
 import Comments from '../../comments/components/Comments.vue';
 import RelatedVideos from '../components/RelatedVideos.vue';
-import { useReactionStore } from '../../video/stores/reactionStore';
+import { useReactionStore } from '../../reactions/stores/reactionStore';
 
 const userStore = useUserStore();
 const videoStore = useVideoStore();

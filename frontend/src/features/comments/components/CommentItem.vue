@@ -55,14 +55,24 @@ const toggleReply = () => {
     isReplyFormVisible.value = !isReplyFormVisible.value;
 };
 
-const handleAddReply = (text: string) => {
+const handleAddReply = async (text: string) => {
     emit('add-reply', props.comment.id, text);
     reply_count.value += 1;
     isReplyFormVisible.value = false;
-    toggleReplies()
+
+    getReplies()
 
     areRepliesVisible.value = true;
 };
+
+const getReplies = async () => {
+    try {
+        const replies = await commentsStore.getReplies(props.comment.id);
+        props.comment.replies = replies;
+    } catch (error) {
+        console.error("Ошибка при загрузке ответов:", error);
+    }
+}
 
 const handleDeleteReply = (replyId: string) => {
     emit('delete-comment', replyId);
@@ -73,14 +83,9 @@ const handleDeleteComment = () => {
     emit('delete-comment', props.comment.id);
 };
 
-const toggleReplies = async () => {
+const toggleReplies = () => {
     if (!areRepliesVisible.value && !props.comment.replies?.length) {
-        try {
-            const replies = await commentsStore.getReplies(props.comment.id);
-            props.comment.replies = replies;
-        } catch (error) {
-            console.error("Ошибка при загрузке ответов:", error);
-        }
+        getReplies()
     }
     areRepliesVisible.value = !areRepliesVisible.value;
 };

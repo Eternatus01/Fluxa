@@ -7,6 +7,8 @@ export interface Video {
   description?: string;
   dislikes_count?: number;
   likes_count?: number;
+  dislikes?: number;
+  likes?: number;
   views?: number;
   created_at: string;
   thumbnail_url: string;

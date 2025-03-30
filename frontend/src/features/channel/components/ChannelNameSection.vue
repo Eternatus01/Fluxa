@@ -1,28 +1,44 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/features/user/stores/userStore';
 import { useChangeStore } from '../stores/changeStore';
 import { storeToRefs } from 'pinia';
+import { ChannelNameParams, ChannelName, ChannelPreviewUpdate } from '../types/channelTypes';
 
 const props = defineProps<{
-    initialChannelName?: string;
+    initialChannelName?: ChannelName;
+}>();
+
+const emit = defineEmits<{
+    (e: 'update', data: ChannelPreviewUpdate): void;
 }>();
 
 const userStore = useUserStore();
 const changeStore = useChangeStore();
-const tempChannelName = ref('');
+const tempChannelName = ref<ChannelName>('');
 const { isUpdatingChannelName, updateChannelNameError } = storeToRefs(changeStore);
+
+// Инициализация значения при создании компонента
+onMounted(() => {
+    if (props.initialChannelName) {
+        tempChannelName.value = props.initialChannelName;
+    }
+});
 
 const uploadChannelName = async () => {
     try {
         if (!tempChannelName.value || !userStore.user_id) return;
 
-        await changeStore.updateChannelName({
+        const params: ChannelNameParams = {
             id: userStore.user_id,
             channelName: tempChannelName.value
-        });
+        };
 
+        await changeStore.updateChannelName(params);
+
+        // Обновляем данные пользователя и отправляем событие обновления
         await userStore.fetchUser();
+        emit('update', { type: 'name', value: tempChannelName.value });
         tempChannelName.value = '';
     } catch (error) {
         // Ошибка обрабатывается в сторе

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { Video } from '../../types/videoTypes';
 import TagsInput from './TagsInput.vue';
 import ThumbnailUpload from './ThumbnailUpload.vue';
@@ -20,10 +20,30 @@ const emit = defineEmits<{
     (e: 'reset'): void;
 }>();
 
-const videoData = ref({ ...props.video });
+// Глубокое копирование объекта видео
+const videoData = ref<Video>({ ...props.video, tags: [...(props.video.tags || [])] });
 const thumbnailFile = ref<File | null>(null);
 const errors = ref<FormErrors>({});
 const tagsInput = ref(props.video.tags?.join(', ') || '');
+
+// Функция для преобразования строки тегов в массив
+const processTags = (tagString: string): string[] => {
+    return tagString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+};
+
+// Обновление тегов в видео при изменении tagsInput
+const updateTags = (value: string) => {
+    console.log('updateTags вызван с:', value);
+    tagsInput.value = value;
+    videoData.value.tags = processTags(value);
+};
+
+// Следим за изменениями props.video
+watch(() => props.video, (newVideo) => {
+    console.log('props.video изменился, обновляем videoData');
+    videoData.value = { ...newVideo, tags: [...(newVideo.tags || [])] };
+    tagsInput.value = newVideo.tags?.join(', ') || '';
+}, { deep: true });
 
 const descriptionLength = computed(() => videoData.value.description?.length || 0);
 
@@ -38,7 +58,7 @@ const validateForm = () => {
         errors.value.description = 'Описание слишком длинное';
     }
 
-    const tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    const tags = processTags(tagsInput.value);
     if (tags.length > 15) {
         errors.value.tags = 'Максимум 15 тегов';
     }
@@ -51,21 +71,23 @@ const handleThumbnailSelected = (file: File) => {
 };
 
 const handleTagsInput = (value: string) => {
-    tagsInput.value = value;
-    videoData.value.tags = value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    updateTags(value);
 };
 
 const saveChanges = () => {
     if (!validateForm()) return;
 
+    // Обновляем теги перед сохранением
+    videoData.value.tags = processTags(tagsInput.value);
+
     emit('save', {
         ...videoData.value,
-        thumbnailFile: thumbnailFile.value,
+        thumbnailFile: thumbnailFile.value || undefined,
     });
 };
 
 const resetForm = () => {
-    videoData.value = { ...props.video };
+    videoData.value = { ...props.video, tags: [...(props.video.tags || [])] };
     tagsInput.value = props.video.tags?.join(', ') || '';
     thumbnailFile.value = null;
     errors.value = {};
@@ -121,7 +143,7 @@ const resetForm = () => {
                     </select>
                 </div>
 
-                <TagsInput v-model="tagsInput" :error="errors.tags" />
+                <TagsInput v-model="tagsInput" :error="errors.tags" @update:modelValue="updateTags" />
             </div>
 
             <!-- Кнопки управления -->

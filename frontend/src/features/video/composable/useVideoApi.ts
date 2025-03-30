@@ -8,6 +8,7 @@ interface ErrorMessage {
 
 interface ApiResponse<T> {
     data: T;
+    message?: string;
 }
 
 export const useVideoApi = () => {
@@ -52,11 +53,12 @@ export const useVideoApi = () => {
         }
     };
 
-    const fetchVideo = async (id: string, user_id: string): Promise<Video> => {
+    const fetchVideo = async (id: string, user_id: string, forceRefresh = false): Promise<Video> => {
         try {
             const { data } = await api.get<ApiResponse<Video>>(`/api/video/fetch?id=${id}&user_id=${user_id}`, {}, {
                 key: `video:${id}`,
-                ttl: 30 * 60 * 1000 // 30 минут для отдельного видео
+                ttl: 5 * 60 * 1000,
+                forceRefresh
             });
             return data.value;
         } catch (error) {
@@ -117,6 +119,10 @@ export const useVideoApi = () => {
                 if (storageError) throw storageError;
             }
 
+            // Сначала инвалидируем кэш, чтобы гарантировать свежесть данных
+            invalidateVideoCache(video_id, user_id);
+
+            // Затем выполняем запрос на обновление видео
             await apiClient(
                 '/api/video/update',
                 {
@@ -134,8 +140,11 @@ export const useVideoApi = () => {
                 }
             );
 
-            // Инвалидируем кэш для обновленного видео и списков видео
+            // Еще раз инвалидируем кэш для гарантии того, что данные будут получены свежие
             invalidateVideoCache(video_id, user_id);
+
+            // Инвалидируем также кэш для поиска
+            api.invalidateCache('videos:search:');
         } catch (error) {
             const err = error as ErrorMessage;
             throw new Error(err?.message || 'Не удалось обновить видео');

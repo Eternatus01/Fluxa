@@ -12,8 +12,8 @@ import { computed } from 'vue';
 import { useUserStore } from '../../user/stores/userStore';
 import { useUploadStore } from '../stores/uploadStore';
 import { storeToRefs } from 'pinia';
-import UploadForm from '../components/upload/UploadForm.vue';
-import type { VideoUploadParams } from '../types/videoTypes';
+import UploadForm from '../../upload/components/UploadForm.vue';
+import type { VideoUploadParams } from '../../video/types/videoTypes';
 
 const userStore = useUserStore();
 const uploadStore = useUploadStore();

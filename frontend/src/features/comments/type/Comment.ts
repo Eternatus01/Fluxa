@@ -1,21 +1,25 @@
-export interface User {
-    id: string;
-    username: string;
-    avatar_url?: string;
+import { UserId } from '../../user/types/userTypes';
+
+export type CommentId = string;
+export type VideoId = string;
+export type CommentText = string;
+
+// Пользователь в контексте комментариев
+export interface CommentUser {
+    id: UserId;
+    username: string | null;
+    avatar_url?: string | null;
+    channel_name?: string;
 }
 
+// Основная структура комментария
 export interface Comment {
-    id: string;
-    video_id: string;
-    user_id: string;
-    text: string;
-    parent_id?: string | null;
-    user?: {
-        id: string;
-        username: string | null;
-        channel_name: string;
-        avatar_url: string;
-    };
+    id: CommentId;
+    video_id: VideoId;
+    user_id: UserId;
+    text: CommentText;
+    parent_id?: CommentId | null;
+    user?: CommentUser;
     created_at?: string;
     likes_count: number;
     dislikes_count: number;
@@ -23,29 +27,41 @@ export interface Comment {
     reply_count?: number;
 }
 
-export interface CommentResponse {
-    data: Comment;
+// Общий тип ответа API
+export interface ApiResponse<T> {
+    data: T;
     message?: string;
+    status?: number;
 }
 
-export interface CommentsResponse {
-    data: Comment[];
-    message?: string;
-}
+// Типизированные ответы API для комментариев
+export type CommentResponse = ApiResponse<Comment>;
+export type CommentsResponse = ApiResponse<Comment[]>;
 
+// Ошибки
 export interface CommentError {
     message: string;
     status?: number;
     field?: string;
+    code?: string;
 }
 
+// Параметры запросов
 export interface AddCommentParams {
-    video_id: string;
-    user_id: string;
-    text: string;
-    parent_id?: string;
+    video_id: VideoId;
+    user_id: UserId;
+    text: CommentText;
+    parent_id?: CommentId;
 }
 
 export interface DeleteCommentParams {
-    comment_id: string;
+    comment_id: CommentId;
+}
+
+// Состояние хранилища комментариев
+export interface CommentsState {
+    commentsMap: Record<VideoId, Comment[]>;
+    repliesMap: Record<CommentId, Comment[]>;
+    isLoading: boolean;
+    error: CommentError | null;
 }

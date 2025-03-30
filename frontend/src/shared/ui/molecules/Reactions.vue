@@ -12,9 +12,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useReactionStore } from '../../../features/video/stores/reactionStore';
+import { ref, onMounted } from 'vue';
+import { useReactionStore } from '../../../features/reactions/stores/reactionStore';
 import { useUserStore } from '../../../features/user/stores/userStore';
+import { ReactionType } from '../../../features/reactions/types';
 import IconLike from '../atoms/IconLike.vue';
 import IconDislike from '../atoms/IconDislike.vue';
 
@@ -33,39 +34,63 @@ const userStore = useUserStore();
 // Локальные состояния
 const likes_count = ref(props.initialLikes);
 const dislikes_count = ref(props.initialDislikes);
+const isLoading = ref(false);
+
+// При монтировании компонента загружаем актуальные данные о реакциях
+onMounted(async () => {
+    try {
+        if (props.entityType === 'video') {
+            await reactionStore.fetchReactions(props.targetId);
+            const reactions = reactionStore.getVideoReactions(props.targetId);
+            if (reactions) {
+                likes_count.value = reactions.likes || reactions.likes_count || 0;
+                dislikes_count.value = reactions.dislikes || reactions.dislikes_count || 0;
+            }
+        } else if (props.entityType === 'comment') {
+            await reactionStore.fetchReactionsComment(props.targetId);
+            const reactions = reactionStore.getCommentReactions(props.targetId);
+            if (reactions) {
+                likes_count.value = reactions.likes || reactions.likes_count || 0;
+                dislikes_count.value = reactions.dislikes || reactions.dislikes_count || 0;
+            }
+        }
+    } catch (error) {
+        console.error("Ошибка при загрузке реакций:", error);
+    }
+});
 
 // Методы
-const handleReaction = async (type: 'like' | 'dislike') => {
+const handleReaction = async (type: ReactionType) => {
+    if (!userStore.user?.id) {
+        // Если пользователь не авторизован, показываем сообщение или перенаправляем на страницу входа
+        return;
+    }
+
+    if (isLoading.value) {
+        return; // Предотвращаем множественные нажатия
+    }
+
+    isLoading.value = true;
     try {
-        let data;
         if (props.entityType === 'video') {
-            data = await reactionStore.addReaction(props.targetId, userStore.user?.id || '', type);
+            await reactionStore.addReaction(props.targetId, userStore.user.id, type);
+            const reactions = reactionStore.getVideoReactions(props.targetId);
+            if (reactions) {
+                likes_count.value = reactions.likes || reactions.likes_count || 0;
+                dislikes_count.value = reactions.dislikes || reactions.dislikes_count || 0;
+            }
         } else if (props.entityType === 'comment') {
-            data = await reactionStore.addReactionComment(props.targetId, userStore.user?.id || '', type);
-        }
-        if (data) {
-            switch (data.action) {
-                case 'added':
-                    if (type === 'like') likes_count.value++;
-                    else dislikes_count.value++;
-                    break;
-                case 'removed':
-                    if (type === 'like') likes_count.value--;
-                    else dislikes_count.value--;
-                    break;
-                case 'updated':
-                    if (type === 'like') {
-                        likes_count.value++;
-                        dislikes_count.value--;
-                    } else {
-                        dislikes_count.value++;
-                        likes_count.value--;
-                    }
-                    break;
+            await reactionStore.addReactionComment(props.targetId, userStore.user.id, type);
+            const reactions = reactionStore.getCommentReactions(props.targetId);
+            if (reactions) {
+                likes_count.value = reactions.likes || reactions.likes_count || 0;
+                dislikes_count.value = reactions.dislikes || reactions.dislikes_count || 0;
             }
         }
     } catch (error) {
         console.error("Ошибка при обработке реакции:", error);
+    } finally {
+        isLoading.value = false;
     }
 };
 </script>

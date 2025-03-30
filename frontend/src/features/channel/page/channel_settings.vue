@@ -63,11 +63,12 @@ import { useUserStore } from '@/features/user/stores/userStore'
 import ChannelNameSection from '../components/ChannelNameSection.vue'
 import ChannelAvatarSection from '../components/ChannelAvatarSection.vue'
 import ChannelBannerSection from '../components/ChannelBannerSection.vue'
+import { ChannelPreviewData, ChannelPreviewUpdate } from '../types/channelTypes'
 
 const userStore = useUserStore()
 
 // Локальное состояние для предпросмотра
-const previewData = ref({
+const previewData = ref<ChannelPreviewData>({
     channelName: '',
     avatarUrl: '',
     bannerUrl: ''
@@ -79,7 +80,7 @@ const channelBanner = computed(() => previewData.value.bannerUrl || userStore.bu
 const channelName = computed(() => previewData.value.channelName || userStore.channel_name)
 
 // Обновление предпросмотра
-const updatePreview = (data: { type: string, value: string }) => {
+const updatePreview = (data: ChannelPreviewUpdate) => {
     switch (data.type) {
         case 'name':
             previewData.value.channelName = data.value

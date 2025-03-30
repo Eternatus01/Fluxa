@@ -5,9 +5,10 @@ import AuthButton from '@/shared/ui/atoms/AuthButton.vue';
 import AuthError from '@/shared/ui/molecules/AuthError.vue';
 import { useAuthStore } from '../stores/auth';
 import { storeToRefs } from 'pinia';
+import { SignUpParams } from '../types/authTypes';
 
 const authStore = useAuthStore();
-const { isLoading, currentError } = storeToRefs(authStore);
+const { isSigningUp: isLoading, signUpError: error } = storeToRefs(authStore);
 
 const email = ref('');
 const password = ref('');
@@ -16,12 +17,14 @@ const channel_name = ref('');
 
 const handleSubmit = async () => {
     try {
-        await authStore.signUp({
+        const params: SignUpParams = {
             email: email.value,
             password: password.value,
             username: username.value,
             channel_name: channel_name.value
-        });
+        };
+
+        await authStore.signUp(params);
         email.value = '';
         password.value = '';
         username.value = '';
@@ -40,7 +43,7 @@ const handleSubmit = async () => {
         <AuthInput v-model="password" type="password" placeholder="Пароль" />
         <div class="flex flex-col gap-4 items-center">
             <AuthButton :is-loading="isLoading" text="Регистрация" />
-            <AuthError :error="currentError" />
+            <AuthError :error="error" />
         </div>
     </form>
 </template>

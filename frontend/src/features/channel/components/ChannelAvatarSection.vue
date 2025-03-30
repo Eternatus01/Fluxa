@@ -3,13 +3,14 @@ import { useUserStore } from '@/features/user/stores/userStore';
 import { useChangeStore } from '../stores/changeStore';
 import { storeToRefs } from 'pinia';
 import ImageUpload from '@/shared/ui/atoms/ImageUpload.vue';
+import { FileUploadParams, ChannelPreviewUpdate, ImageUrl } from '../types/channelTypes';
 
 const props = defineProps<{
-    avatarUrl?: string;
+    avatarUrl?: ImageUrl;
 }>();
 
 const emit = defineEmits<{
-    (e: 'update', data: { type: string, value: string }): void;
+    (e: 'update', data: ChannelPreviewUpdate): void;
 }>();
 
 const userStore = useUserStore();
@@ -23,11 +24,14 @@ const handleAvatarChange = async (event: Event) => {
     if (file && userStore.user_id) {
         try {
             const filePath = `${userStore.user_id}/${file.name}`;
-            await changeStore.updateAvatarUrl({
+
+            const params: FileUploadParams = {
                 id: userStore.user_id,
                 filePath,
                 file
-            });
+            };
+
+            await changeStore.updateAvatarUrl(params);
 
             await userStore.fetchUser();
             emit('update', { type: 'avatar', value: URL.createObjectURL(file) });

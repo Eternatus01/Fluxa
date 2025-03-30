@@ -1,5 +1,13 @@
 import { apiClient } from './../../../widgets/apiClient';
 import { useApiWithCache } from '../../../shared/composables/useApiWithCache';
+import {
+    Comment,
+    CommentId,
+    VideoId,
+    CommentText,
+    CommentError
+} from '../type/Comment';
+import { UserId } from '../../user/types/userTypes';
 
 export const useCommentsApi = () => {
     // Создаем экземпляр API с кэшированием для комментариев
@@ -12,25 +20,35 @@ export const useCommentsApi = () => {
         }
     });
 
-    const addComment = async (videoId: string, userId: string, text: string, parentCommentId?: string): Promise<Comment> => {
+    const addComment = async (
+        videoId: VideoId,
+        userId: UserId,
+        text: CommentText,
+        parentCommentId?: CommentId
+    ): Promise<Comment> => {
         try {
-            const data  = await apiClient(`/api/video/${videoId}/comments`, {
+            const data = await apiClient<Comment>(`/api/video/${videoId}/comments`, {
                 method: 'POST',
                 data: { videoId, userId, text, parentCommentId }
             });
-            
+
             // Инвалидируем кэш комментариев для этого видео
             invalidateCommentsCache(videoId);
-            
+
             return data;
         } catch (error) {
-            throw error;
+            const err = error as Error;
+            const commentError: CommentError = {
+                message: err?.message || 'Не удалось добавить комментарий',
+                status: 500
+            };
+            throw commentError;
         }
     };
 
-    const fetchComments = async (videoId: string): Promise<Comment[]> => {
+    const fetchComments = async (videoId: VideoId): Promise<Comment[]> => {
         try {
-            const data  = await apiClient(`/api/video/${videoId}/comments`, {
+            const data = await apiClient<Comment[]>(`/api/video/${videoId}/comments`, {
                 method: 'GET',
                 params: { videoId },
                 headers: {
@@ -41,24 +59,34 @@ export const useCommentsApi = () => {
             });
             return data;
         } catch (error) {
-            throw error;
+            const err = error as Error;
+            const commentError: CommentError = {
+                message: err?.message || 'Не удалось загрузить комментарии',
+                status: 500
+            };
+            throw commentError;
         }
     };
 
-    const deleteComment = async (comment_id: string): Promise<void> => {
+    const deleteComment = async (comment_id: CommentId): Promise<void> => {
         try {
-            await apiClient(`/api/video/comments/${comment_id}`, {
+            await apiClient<void>(`/api/video/comments/${comment_id}`, {
                 method: 'DELETE',
                 data: { comment_id }
             });
         } catch (error) {
-            throw error;
+            const err = error as Error;
+            const commentError: CommentError = {
+                message: err?.message || 'Не удалось удалить комментарий',
+                status: 500
+            };
+            throw commentError;
         }
     };
 
-    const getReplies = async (comment_id: string): Promise<Comment[]> => {
+    const getReplies = async (comment_id: CommentId): Promise<Comment[]> => {
         try {
-            const data  = await apiClient(`/api/video/comments/${comment_id}/replies`, {
+            const data = await apiClient<Comment[]>(`/api/video/comments/${comment_id}/replies`, {
                 method: 'GET',
                 params: { comment_id },
                 headers: {
@@ -69,24 +97,29 @@ export const useCommentsApi = () => {
             });
             return data;
         } catch (error) {
-            throw error;
+            const err = error as Error;
+            const commentError: CommentError = {
+                message: err?.message || 'Не удалось загрузить ответы на комментарий',
+                status: 500
+            };
+            throw commentError;
         }
     };
 
     // Инвалидация кэша комментариев для видео
-    const invalidateCommentsCache = (videoId: string) => {
+    const invalidateCommentsCache = (videoId: VideoId): void => {
         api.invalidateCache(`comments:video:${videoId}`);
     };
 
     // Очистка всего кэша комментариев
-    const clearCommentsCache = () => {
-        api.clearCacheByPattern('comments:');
+    const clearCommentsCache = (): void => {
+        api.invalidateCache('comments:');
     };
 
-    return { 
-        addComment, 
-        fetchComments, 
-        deleteComment, 
+    return {
+        addComment,
+        fetchComments,
+        deleteComment,
         getReplies,
         invalidateCommentsCache,
         clearCommentsCache

@@ -1,76 +1,123 @@
 import { useSubscriptionApi } from "../composable/useSubscriptionApi";
 import { defineStore } from 'pinia';
 import { computed, ref, type Ref } from "vue";
-import type { Subscription } from "../types";
+import {
+    Subscription,
+    SubscriptionState,
+    SubscriptionError,
+    ChannelId,
+    SubscriberId
+} from "../types/subscriptionTypes";
 import { useUserStore } from "../../user/stores/userStore";
+import { UserData, UserId } from "../../user/types/userTypes";
 
 export const useSubscriptionStore = defineStore("subscription", () => {
     const subscriptionApi = useSubscriptionApi();
-    const userStore = useUserStore()
+    const userStore = useUserStore();
 
+    // Реактивные состояния
     const subscriptions: Ref<UserData[] | null> = ref([]);
     const userSubscriptions: Ref<UserData[] | null> = ref(null);
     const subscriptionsCache: Ref<Subscription[]> = ref([]);
+    const isLoading: Ref<boolean> = ref(false);
+    const error: Ref<SubscriptionError | null> = ref(null);
 
-    const fetchUserSubscriptions = async (user_id: string): Promise<UserData[] | null | undefined> => {
+    const fetchUserSubscriptions = async (user_id: UserId): Promise<UserData[] | null | undefined> => {
+        isLoading.value = true;
+        error.value = null;
+
         try {
             const data = await subscriptionApi.fetchUserSubscriptions(user_id);
-            const usersData = await userStore.getUsersById(data)
+            const usersData = await userStore.getUsersById(data);
             subscriptions.value = usersData;
             return usersData;
-        } catch (error) {
-            console.error("Ошибка при загрузке подписок пользователя:", error);
+        } catch (err) {
+            console.error("Ошибка при загрузке подписок пользователя:", err);
+            error.value = err as SubscriptionError;
             userSubscriptions.value = null;
+            return null;
+        } finally {
+            isLoading.value = false;
         }
     };
 
-    const checkSubscription = async (target_id: string): Promise<Boolean> => {
+    const checkSubscription = async (target_id: ChannelId): Promise<boolean> => {
+        isLoading.value = true;
+        error.value = null;
+
         try {
             const data = await subscriptionApi.checkSubscription(target_id);
-
-            return data
-        } catch (error) {
-            console.error("Check subscription error:", error);
+            return data;
+        } catch (err) {
+            console.error("Check subscription error:", err);
+            error.value = err as SubscriptionError;
             return false;
+        } finally {
+            isLoading.value = false;
         }
     };
 
-    const subscribe = async (target_id: string): Promise<void> => {
+    const subscribe = async (target_id: ChannelId): Promise<void> => {
+        isLoading.value = true;
+        error.value = null;
+
         try {
             await subscriptionApi.subscribe(target_id);
-        } catch (error) {
-            console.error("Ошибка при подписке:", error);
-            throw error;
+        } catch (err) {
+            console.error("Ошибка при подписке:", err);
+            error.value = err as SubscriptionError;
+            throw err;
+        } finally {
+            isLoading.value = false;
         }
     };
 
-    const unsubscribe = async (target_id: string): Promise<void> => {
+    const unsubscribe = async (target_id: ChannelId): Promise<void> => {
+        isLoading.value = true;
+        error.value = null;
+
         try {
             await subscriptionApi.unSubscribe(target_id);
-        } catch (error) {
-            console.error("Ошибка при отписке:", error);
-            throw error;
+        } catch (err) {
+            console.error("Ошибка при отписке:", err);
+            error.value = err as SubscriptionError;
+            throw err;
+        } finally {
+            isLoading.value = false;
         }
     };
 
-    const toggleSubscribe = async (target_id: string): Promise<void> => {
-        const data = await subscriptionApi.checkSubscription(target_id);
-        if (data) {
-            await unsubscribe(target_id);
-        } else {
-            await subscribe(target_id);
-        }
-    }
+    const toggleSubscribe = async (target_id: ChannelId): Promise<void> => {
+        isLoading.value = true;
+        error.value = null;
 
-    const clearSubscriptions = () => {
+        try {
+            const data = await subscriptionApi.checkSubscription(target_id);
+            if (data) {
+                await unsubscribe(target_id);
+            } else {
+                await subscribe(target_id);
+            }
+        } catch (err) {
+            error.value = err as SubscriptionError;
+            throw err;
+        } finally {
+            isLoading.value = false;
+        }
+    };
+
+    const clearSubscriptions = (): void => {
         subscriptions.value = null;
         userSubscriptions.value = null;
+        error.value = null;
     };
 
     return {
         subscriptions: computed(() => subscriptions.value),
         userSubscriptions: computed(() => userSubscriptions.value),
         subscriptionsCache: computed(() => subscriptionsCache.value),
+        isLoading: computed(() => isLoading.value),
+        error: computed(() => error.value),
         fetchUserSubscriptions,
         checkSubscription,
         toggleSubscribe,

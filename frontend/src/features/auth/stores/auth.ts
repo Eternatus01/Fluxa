@@ -3,21 +3,29 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthApi } from '../composable/useAuthApi';
 import { useUserStore } from '../../user/stores/userStore';
+import {
+  SignUpParams,
+  SignInParams,
+  AuthError,
+  AuthState
+} from '../types/authTypes';
+import { UserData } from '../../user/types/userTypes';
 
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter();
   const authApi = useAuthApi();
   const userStore = useUserStore();
 
-  const isCheckingAuth = ref(false);
-  const isSigningUp = ref(false);
-  const isSigningIn = ref(false);
-  const isSigningOut = ref(false);
-  const signUpError = ref<Error | null>(null);
-  const signInError = ref<Error | null>(null);
-  const signOutError = ref<Error | null>(null);
+  // Состояние согласно AuthState
+  const isCheckingAuth = ref<boolean>(false);
+  const isSigningUp = ref<boolean>(false);
+  const isSigningIn = ref<boolean>(false);
+  const isSigningOut = ref<boolean>(false);
+  const signUpError = ref<AuthError | null>(null);
+  const signInError = ref<AuthError | null>(null);
+  const signOutError = ref<AuthError | null>(null);
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<UserData | null> => {
     if (isCheckingAuth.value) return null;
 
     isCheckingAuth.value = true;
@@ -42,39 +50,41 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const signUp = async ({ email, password, username, channel_name }: { email: string, password: string, username: string, channel_name: string }) => {
+  const signUp = async (params: SignUpParams): Promise<UserData> => {
     isSigningUp.value = true;
     signUpError.value = null;
     try {
-      const data = await authApi.signUp(email, password, username, channel_name);
+      const data = await authApi.signUp(
+        params.email, params.password, params.username, params.channel_name
+      );
       userStore.setUser(data);
       router.push('/');
       return data;
     } catch (error) {
-      signUpError.value = error as Error;
+      signUpError.value = error as AuthError;
       throw error;
     } finally {
       isSigningUp.value = false;
     }
   };
 
-  const signIn = async ({ email, password }: { email: string, password: string }) => {
+  const signIn = async (params: SignInParams): Promise<UserData> => {
     isSigningIn.value = true;
     signInError.value = null;
     try {
-      const data = await authApi.signIn(email, password);
+      const data = await authApi.signIn(params.email, params.password);
       userStore.setUser(data);
       router.push('/');
       return data;
     } catch (error) {
-      signInError.value = error as Error;
+      signInError.value = error as AuthError;
       throw error;
     } finally {
       isSigningIn.value = false;
     }
   };
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     isSigningOut.value = true;
     signOutError.value = null;
     try {
@@ -82,7 +92,7 @@ export const useAuthStore = defineStore('auth', () => {
       userStore.clearUser();
       router.push('/');
     } catch (error) {
-      signOutError.value = error as Error;
+      signOutError.value = error as AuthError;
       throw error;
     } finally {
       isSigningOut.value = false;

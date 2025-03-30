@@ -19,7 +19,7 @@ const routes = [
   {
     path: "/upload",
     name: "Upload",
-    component: () => import("../../features/video/pages/upload.vue"),
+    component: () => import("../../features/upload/pages/upload.vue"),
   },
   {
     path: "/subscriptions",

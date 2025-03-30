@@ -1,14 +1,20 @@
 <script setup lang="ts">
-import type { Subscription } from '../types';
+import { UserData } from '../../user/types/userTypes';
 import SubscriptionCard from './SubscriptionCard.vue';
+import { computed } from 'vue';
 
-defineProps<{
-    subscriptions: Subscription[];
+const props = defineProps<{
+    subscriptions: UserData[] | null;
 }>();
+
+// Вычисляемое свойство для отслеживания наличия подписок
+const hasSubscriptions = computed(() => {
+    return props.subscriptions && props.subscriptions.length > 0;
+});
 </script>
 
 <template>
-    <div v-if="subscriptions.length > 0" class="grid grid-cols-1 gap-4">
+    <div v-if="hasSubscriptions" class="grid grid-cols-1 gap-4">
         <SubscriptionCard v-for="subscription in subscriptions" :key="subscription.id" :subscription="subscription" />
     </div>
     <div v-else class="text-center py-8">

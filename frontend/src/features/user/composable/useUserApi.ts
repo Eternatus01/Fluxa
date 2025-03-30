@@ -1,4 +1,13 @@
 import { useApiWithCache } from "../../../shared/composables/useApiWithCache";
+import {
+    UserData,
+    UpdateUserProfileParams,
+    ApiResponse,
+    UserId,
+    Username,
+    UserResponse,
+    UsersResponse
+} from "../types/userTypes";
 
 export const useUserApi = () => {
     const api = useApiWithCache('user', {
@@ -12,38 +21,54 @@ export const useUserApi = () => {
 
     const fetchUser = async (): Promise<UserData> => {
         try {
-            const { data } = await api.get<{ data: UserData }>('/api/user/me', {}, {
+            const { data } = await api.get<ApiResponse<UserData>>('/api/user/me', {}, {
                 key: 'user:current',
                 ttl: 30 * 60 * 1000
             });
+
+            // Проверяем и извлекаем данные пользователя
+            if (!data.value) {
+                throw new Error('Не удалось получить данные пользователя');
+            }
+
             return data.value;
         } catch (error) {
             throw error;
         }
     };
 
-    const getUserById = async (user_id: string): Promise<UserData> => {
+    const getUserById = async (user_id: UserId): Promise<UserData> => {
         try {
-            const { data } = await api.get<{ data: UserData }>(`/api/user/get/id/${user_id}`, { user_id }, {
+            const { data } = await api.get<ApiResponse<UserData>>(`/api/user/get/id/${user_id}`, { user_id }, {
                 key: `user:id:${user_id}`,
                 ttl: 30 * 60 * 1000 // 30 минут
             });
 
+            // Проверяем и извлекаем данные пользователя
+            if (!data.value) {
+                throw new Error(`Не удалось получить пользователя с ID ${user_id}`);
+            }
+
             return data.value;
         } catch (error) {
             throw error;
         }
     };
 
-    const getUsersById = async (users_id: string[]): Promise<UserData[]> => {
+    const getUsersById = async (users_id: UserId[]): Promise<UserData[]> => {
         try {
             // Для массовых запросов используем уникальный ключ на основе отсортированных ID
             const sortedIds = [...users_id].sort().join(',');
 
-            const { data } = await api.get<{ data: UserData[] }>(`/api/user/get/ids`, { users_id }, {
+            const { data } = await api.get<ApiResponse<UserData[]>>(`/api/user/get/ids`, { users_id }, {
                 key: `users:ids:${sortedIds}`,
                 ttl: 30 * 60 * 1000 // 30 минут
             });
+
+            // Проверяем и извлекаем данные пользователя
+            if (!data.value) {
+                throw new Error('Не удалось получить данные пользователей');
+            }
 
             return data.value;
         } catch (error) {
@@ -51,24 +76,18 @@ export const useUserApi = () => {
         }
     };
 
-    const getUserByUsername = async (username: string): Promise<UserData> => {
+    const getUserByUsername = async (username: Username): Promise<UserData> => {
         try {
-            const { data } = await api.get<UserData>(`/api/user/get/username/${username}`, { username }, {
+            const { data } = await api.get<ApiResponse<UserData>>(`/api/user/get/username/${username}`, { username }, {
                 key: `user:username:${username}`,
                 ttl: 5 * 60 * 1000
             });
 
-            // Проверяем, что данные существуют и имеют нужную структуру
+            // Проверяем и извлекаем данные пользователя
             if (!data.value) {
                 throw new Error(`Не удалось найти пользователя с именем ${username}`);
             }
 
-            // Проверяем, что ответ содержит ID пользователя (минимальная проверка валидности)
-            if (!data.value.id) {
-                throw new Error(`Получены некорректные данные пользователя ${username}`);
-            }
-
-            // Возвращаем данные пользователя
             return data.value;
         } catch (error) {
             throw error;
@@ -76,10 +95,10 @@ export const useUserApi = () => {
     };
 
     // Метод для обновления данных пользователя
-    const updateUserProfile = async (userData: Partial<UserData>): Promise<UserData> => {
+    const updateUserProfile = async (userData: UpdateUserProfileParams): Promise<UserData> => {
         try {
             // Создаем массив путей для инвалидации кэша
-            const invalidationPaths = ['/api/user/me'];
+            const invalidationPaths: string[] = ['/api/user/me'];
 
             if (userData.id) {
                 invalidationPaths.push(`/api/user/get/id/${userData.id}`);
@@ -89,9 +108,10 @@ export const useUserApi = () => {
                 invalidationPaths.push(`/api/user/get/username/${userData.username}`);
             }
 
-            const { data } = await api.put<{ data: UserData }>('/api/user/update', userData, invalidationPaths);
+            const { data } = await api.put<ApiResponse<UserData>>('/api/user/update', userData, invalidationPaths);
 
-            if (!data.value || !data.value.data) {
+            // Проверяем и извлекаем данные обновленного пользователя
+            if (!data.value) {
                 throw new Error('Не удалось обновить профиль пользователя');
             }
 
@@ -102,7 +122,7 @@ export const useUserApi = () => {
     };
 
     // Метод для инвалидации кэша пользователя
-    const invalidateUserCache = (userId?: string, username?: string) => {
+    const invalidateUserCache = (userId?: UserId, username?: Username) => {
         // Инвалидируем кэш текущего пользователя
         api.invalidateCache('/api/user/me');
 

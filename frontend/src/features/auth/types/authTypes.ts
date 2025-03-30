@@ -1,4 +1,6 @@
-import { UserData } from '../../user/types/userTypes';
+import { UserData, Username, ChannelName } from '../../user/types/userTypes';
+import { ComputedRef } from 'vue';
+import { Store } from 'pinia';
 
 // Базовые типы
 export type AuthToken = string;
@@ -15,39 +17,43 @@ export interface Session {
     expires_at?: number;
 }
 
-// Ответы API
-export interface AuthResponse<T> {
+// Общий тип ответа API
+export interface ApiResponse<T> {
     data: T;
     message?: string;
     status: number;
 }
 
+// Фактическая структура ответов API
 export interface SignUpResponse {
     data: {
         user: UserData;
-        token: string;
-        refreshToken: string;
+        token: AuthToken;
+        refreshToken: AuthToken;
     };
     message?: string;
     status: number;
 }
 
 export interface SignInResponse {
-    data: {
-        user: UserData;
-        token: string;
-        refreshToken: string;
-    };
+    user: UserData;
+    token: AuthToken;
+    refreshToken: AuthToken;
     message?: string;
     status: number;
+}
+
+// Ответ API при получении текущего пользователя
+export interface GetCurrentUserResponse {
+    data: UserData;
 }
 
 // Параметры запросов
 export interface SignUpParams {
     email: Email;
     password: Password;
-    username: string;
-    channel_name: string;
+    username: Username;
+    channel_name: ChannelName;
 }
 
 export interface SignInParams {
@@ -69,6 +75,13 @@ export interface AuthState {
     session: Session | null;
     status: AuthStatus;
     error: AuthError | null;
+    isSigningUp: boolean;
+    isSigningIn: boolean;
+    isSigningOut: boolean;
+    isCheckingAuth: boolean;
+    signUpError: AuthError | null;
+    signInError: AuthError | null;
+    signOutError: AuthError | null;
 }
 
 // Константы для валидации
@@ -84,4 +97,27 @@ export const AUTH_CONSTRAINTS = {
         MESSAGE: 'Введите корректный email адрес'
     }
 } as const;
+
+// Определения для store
+
+// Используем интерфейс AuthState для определения типа хранилища
+export type AuthStoreGetters = {
+    isSigningUp: ComputedRef<boolean>;
+    isSigningIn: ComputedRef<boolean>;
+    isSigningOut: ComputedRef<boolean>;
+    isCheckingAuth: ComputedRef<boolean>;
+    signUpError: ComputedRef<AuthError | null>;
+    signInError: ComputedRef<AuthError | null>;
+    signOutError: ComputedRef<AuthError | null>;
+    isAuthenticated: ComputedRef<boolean>;
+};
+
+export type AuthStoreActions = {
+    signUp: (params: SignUpParams) => Promise<UserData>;
+    signIn: (params: SignInParams) => Promise<UserData>;
+    signOut: () => Promise<void>;
+    checkAuth: () => Promise<UserData | null>;
+};
+
+export type AuthStore = Store<"auth", AuthState, AuthStoreGetters, AuthStoreActions>;
 

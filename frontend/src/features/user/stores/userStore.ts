@@ -1,7 +1,18 @@
 import { useUserApi } from "../composable/useUserApi";
 import { defineStore } from 'pinia';
 import { computed, ref } from "vue";
-import { UserData, UpdateUserProfileParams } from '../types/userTypes';
+import {
+    UserData,
+    UpdateUserProfileParams,
+    UserId,
+    ChannelName,
+    ImageUrl,
+    UsersCache,
+    UsernameToIdMap,
+    UserError,
+    Username,
+    UserState,
+} from '../types/userTypes';
 
 export const useUserStore = defineStore("user", () => {
     const userApi = useUserApi();
@@ -9,14 +20,14 @@ export const useUserStore = defineStore("user", () => {
     // Реактивные состояния
     const user = ref<UserData | null>(null);
     const token = ref<string | null>(null);
-    const avatar_url = ref('');
-    const bunner_url = ref('');
-    const channel_name = ref('');
-    const user_id = ref('');
-    const usersCache = ref<Record<string, UserData>>({});
-    const usernameToIdMap = ref<Record<string, string>>({});
-    const isLoading = ref(false);
-    const error = ref<Error | null>(null);
+    const avatar_url = ref<ImageUrl>('');
+    const bunner_url = ref<ImageUrl>('');
+    const channel_name = ref<ChannelName>('');
+    const user_id = ref<UserId>('');
+    const usersCache = ref<UsersCache>({});
+    const usernameToIdMap = ref<UsernameToIdMap>({});
+    const isLoading = ref<boolean>(false);
+    const error = ref<UserError | null>(null);
 
     // Обновление состояния пользователя
     const updateUserState = (userData: UserData | null) => {
@@ -51,7 +62,11 @@ export const useUserStore = defineStore("user", () => {
 
             return userData;
         } catch (err) {
-            error.value = err as Error;
+            const userError: UserError = {
+                message: err instanceof Error ? err.message : 'Неизвестная ошибка при получении пользователя',
+                status: 500
+            };
+            error.value = userError;
             throw err;
         } finally {
             isLoading.value = false;
@@ -59,7 +74,7 @@ export const useUserStore = defineStore("user", () => {
     };
 
     // Получение пользователя по ID
-    const getUserById = async (userId: string): Promise<UserData> => {
+    const getUserById = async (userId: UserId): Promise<UserData> => {
         // Проверяем кэш
         if (usersCache.value[userId]) {
             return usersCache.value[userId];
@@ -79,7 +94,11 @@ export const useUserStore = defineStore("user", () => {
 
             return userData;
         } catch (err) {
-            error.value = err as Error;
+            const userError: UserError = {
+                message: err instanceof Error ? err.message : `Не удалось получить пользователя с ID ${userId}`,
+                status: 500
+            };
+            error.value = userError;
             throw err;
         } finally {
             isLoading.value = false;
@@ -87,10 +106,10 @@ export const useUserStore = defineStore("user", () => {
     };
 
     // Получение нескольких пользователей по ID
-    const getUsersById = async (userIds: string[]): Promise<UserData[]> => {
+    const getUsersById = async (userIds: UserId[]): Promise<UserData[]> => {
         // Фильтруем ID, которые уже есть в кэше
         const cachedUsers: UserData[] = [];
-        const uncachedIds: string[] = [];
+        const uncachedIds: UserId[] = [];
 
         userIds.forEach(id => {
             if (usersCache.value[id]) {
@@ -123,7 +142,11 @@ export const useUserStore = defineStore("user", () => {
 
             return [...cachedUsers, ...fetchedUsers];
         } catch (err) {
-            error.value = err as Error;
+            const userError: UserError = {
+                message: err instanceof Error ? err.message : `Не удалось получить пользователей по ID`,
+                status: 500
+            };
+            error.value = userError;
             throw err;
         } finally {
             isLoading.value = false;
@@ -131,7 +154,7 @@ export const useUserStore = defineStore("user", () => {
     };
 
     // Получение пользователя по имени пользователя
-    const getUserByUsername = async (username: string): Promise<UserData> => {
+    const getUserByUsername = async (username: Username): Promise<UserData> => {
         // Проверяем, есть ли маппинг username -> id
         if (usernameToIdMap.value[username] && usersCache.value[usernameToIdMap.value[username]]) {
             return usersCache.value[usernameToIdMap.value[username]];
@@ -151,7 +174,11 @@ export const useUserStore = defineStore("user", () => {
 
             return userData;
         } catch (err) {
-            error.value = err as Error;
+            const userError: UserError = {
+                message: err instanceof Error ? err.message : `Не удалось получить пользователя с именем ${username}`,
+                status: 500
+            };
+            error.value = userError;
             throw err;
         } finally {
             isLoading.value = false;
@@ -206,7 +233,11 @@ export const useUserStore = defineStore("user", () => {
 
             return updatedUser;
         } catch (err) {
-            error.value = err as Error;
+            const userError: UserError = {
+                message: err instanceof Error ? err.message : 'Не удалось обновить профиль пользователя',
+                status: 500
+            };
+            error.value = userError;
             throw err;
         } finally {
             isLoading.value = false;
@@ -240,7 +271,7 @@ export const useUserStore = defineStore("user", () => {
     };
 
     // Установка имени канала
-    const setChannelName = (name: string) => {
+    const setChannelName = (name: ChannelName) => {
         channel_name.value = name;
 
         if (user.value) {
@@ -255,7 +286,7 @@ export const useUserStore = defineStore("user", () => {
 
     // Getters
     const isAuthenticated = computed(() => !!token.value && !!user.value);
-    const username = computed(() => user.value?.username || '');
+    const username = computed<Username>(() => user.value?.username || '');
     const subscribers_count = computed(() => user.value?.subscribers_count || 0);
 
     // Actions

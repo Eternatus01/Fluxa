@@ -79,7 +79,6 @@ const handleAddReply = async (parentCommentId: string, text: string) => {
                 if (!parentComment.replies) {
                     parentComment.replies = [];
                 }
-                parentComment.replies.unshift(reply);
 
                 // Увеличиваем счетчик ответов
                 if (parentComment.reply_count !== undefined) {

@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useAuthStore } from '../stores/auth';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useAuthStore } from '../../../features/auth/stores/auth';
+import { useUserStore } from '../../../features/user/stores/userStore';
 
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
+
+const user = computed(() => userStore.user);
 
 const toggleMenu = () => {
     isOpen.value = !isOpen.value;
@@ -32,10 +36,9 @@ onUnmounted(() => {
                 hover:ring-2 hover:ring-primary-500/30
                 focus:outline-none focus:ring-2 focus:ring-primary-500/50
                 transition-all duration-300">
-            <img :src="authStore.user?.avatar_url" :alt="authStore.user?.username"
-                class="w-8 h-8 rounded-full object-cover" />
+            <img :src="user?.avatar_url || ''" :alt="user?.username ?? ''" class="w-8 h-8 rounded-full object-cover" />
             <span class="text-white/90 text-sm hidden md:block">
-                {{ authStore.user?.username }}
+                {{ user?.username || '' }}
             </span>
             <i class="i-carbon-chevron-down text-white/60" :class="{ 'rotate-180': isOpen }"></i>
         </button>
@@ -47,8 +50,8 @@ onUnmounted(() => {
             <div class="py-2">
                 <!-- User Info -->
                 <div class="px-4 py-3 border-b border-dark-400">
-                    <p class="text-sm text-white/90">{{ authStore.user?.email }}</p>
-                    <p class="text-xs text-white/60 mt-1">{{ authStore.user?.role }}</p>
+                    <p class="text-sm text-white/90">{{ user?.email || '' }}</p>
+                    <p class="text-xs text-white/60 mt-1">{{ user?.channel_name || '' }}</p>
                 </div>
 
                 <!-- Menu Items -->

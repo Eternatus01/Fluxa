@@ -1,4 +1,6 @@
-export function formatViews(views: number): string {
+export function formatViews(views: number | undefined): string {
+    if (!views) return '0 просмотров';
+
     if (views >= 1000000) {
         return `${(views / 1000000).toFixed(1)}M просмотров`;
     } else if (views >= 1000) {

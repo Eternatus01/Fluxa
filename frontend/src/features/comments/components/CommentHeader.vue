@@ -4,7 +4,7 @@ import TimeAgo from '@/shared/ui/atoms/TimeAgo.vue';
 import DeleteButton from '@/shared/ui/atoms/DeleteButton.vue';
 
 defineProps<{
-    username: string | null;
+    username: string | null | undefined;
     avatarUrl: string;
     createdAt: string;
     canDelete: boolean;

@@ -2,71 +2,89 @@ import { useChangeApi } from "../composable/useChangeApi";
 import { defineStore } from 'pinia';
 import { useUserStore } from "../../user/stores/userStore";
 import { ref, computed } from "vue";
-
-interface FilePath {
-    filePath: string;
-    id: string;
-    file: File;
-}
-
-interface NameData {
-    channelName: string;
-    id: string;
-}
+import {
+    FileUploadParams,
+    ChannelNameParams,
+    ChannelError,
+    ChannelState
+} from '../types/channelTypes';
 
 export const useChangeStore = defineStore("change", () => {
     const changeApi = useChangeApi();
     const userStore = useUserStore();
 
-    const isUpdatingAvatarUrl = ref(false);
-    const isUpdatingBunnerUrl = ref(false);
-    const isUpdatingChannelName = ref(false);
-    const updateAvatarUrlError = ref<Error | null>(null);
-    const updateBunnerUrlError = ref<Error | null>(null);
-    const updateChannelNameError = ref<Error | null>(null);
+    const isUpdatingAvatarUrl = ref<boolean>(false);
+    const isUpdatingBannerUrl = ref<boolean>(false);
+    const isUpdatingChannelName = ref<boolean>(false);
+    const updateAvatarUrlError = ref<ChannelError | null>(null);
+    const updateBannerUrlError = ref<ChannelError | null>(null);
+    const updateChannelNameError = ref<ChannelError | null>(null);
 
-    const updateAvatarUrl = async ({ id, filePath, file }: FilePath): Promise<void> => {
+    const updateAvatarUrl = async ({ id, filePath, file }: FileUploadParams): Promise<void> => {
         isUpdatingAvatarUrl.value = true;
         updateAvatarUrlError.value = null;
         try {
             if (!id) {
-                throw new Error('ID пользователя не указан');
+                const error: ChannelError = {
+                    message: 'ID пользователя не указан',
+                    status: 400,
+                    field: 'id'
+                };
+                throw error;
             }
             const avatarUrl = await changeApi.changeAvatar(id, filePath, file);
             userStore.setAvatar(avatarUrl);
         } catch (error) {
-            updateAvatarUrlError.value = error as Error;
+            updateAvatarUrlError.value = error as ChannelError;
             throw error;
         } finally {
             isUpdatingAvatarUrl.value = false;
         }
     };
 
-    const updateBunnerUrl = async ({ id, filePath, file }: FilePath): Promise<void> => {
-        isUpdatingBunnerUrl.value = true;
-        updateBunnerUrlError.value = null;
+    const updateBannerUrl = async ({ id, filePath, file }: FileUploadParams): Promise<void> => {
+        isUpdatingBannerUrl.value = true;
+        updateBannerUrlError.value = null;
         try {
-            const bunnerUrl = await changeApi.changeBunner(id, filePath, file);
-            userStore.setBunner(bunnerUrl);
+            if (!id) {
+                const error: ChannelError = {
+                    message: 'ID пользователя не указан',
+                    status: 400,
+                    field: 'id'
+                };
+                throw error;
+            }
+            const bannerUrl = await changeApi.changeBunner(id, filePath, file);
+            userStore.setBunner(bannerUrl);
         } catch (error) {
-            updateBunnerUrlError.value = error as Error;
+            updateBannerUrlError.value = error as ChannelError;
             throw error;
         } finally {
-            isUpdatingBunnerUrl.value = false;
+            isUpdatingBannerUrl.value = false;
         }
     };
 
-    const updateChannelName = async ({ id, channelName }: NameData): Promise<void> => {
+    const updateChannelName = async ({ id, channelName }: ChannelNameParams): Promise<void> => {
         isUpdatingChannelName.value = true;
         updateChannelNameError.value = null;
 
         try {
             if (!id) {
-                throw new Error('ID пользователя не указан');
+                const error: ChannelError = {
+                    message: 'ID пользователя не указан',
+                    status: 400,
+                    field: 'id'
+                };
+                throw error;
             }
 
             if (!channelName || channelName.trim() === '') {
-                throw new Error('Название канала не может быть пустым');
+                const error: ChannelError = {
+                    message: 'Название канала не может быть пустым',
+                    status: 400,
+                    field: 'channelName'
+                };
+                throw error;
             }
 
             const newChannelName = await changeApi.updateChannelName(id, channelName);
@@ -74,7 +92,7 @@ export const useChangeStore = defineStore("change", () => {
             userStore.setChannelName(newChannelName);
         } catch (error) {
             console.error('Ошибка в changeStore.updateChannelName:', error);
-            updateChannelNameError.value = error as Error;
+            updateChannelNameError.value = error as ChannelError;
             throw error;
         } finally {
             isUpdatingChannelName.value = false;
@@ -83,13 +101,13 @@ export const useChangeStore = defineStore("change", () => {
 
     return {
         updateAvatarUrl,
-        updateBunnerUrl,
+        updateBannerUrl,
         updateChannelName,
         isUpdatingAvatarUrl: computed(() => isUpdatingAvatarUrl.value),
-        isUpdatingBunnerUrl: computed(() => isUpdatingBunnerUrl.value),
+        isUpdatingBannerUrl: computed(() => isUpdatingBannerUrl.value),
         isUpdatingChannelName: computed(() => isUpdatingChannelName.value),
         updateAvatarUrlError: computed(() => updateAvatarUrlError.value),
-        updateBunnerUrlError: computed(() => updateBunnerUrlError.value),
+        updateBannerUrlError: computed(() => updateBannerUrlError.value),
         updateChannelNameError: computed(() => updateChannelNameError.value),
     };
 });

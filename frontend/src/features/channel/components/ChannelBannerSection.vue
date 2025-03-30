@@ -3,13 +3,14 @@ import { useUserStore } from '@/features/user/stores/userStore';
 import { useChangeStore } from '../stores/changeStore';
 import { storeToRefs } from 'pinia';
 import ImageUpload from '@/shared/ui/atoms/ImageUpload.vue';
+import { FileUploadParams, ChannelPreviewUpdate, ImageUrl } from '../types/channelTypes';
 
 const props = defineProps<{
-    bannerUrl?: string;
+    bannerUrl?: ImageUrl;
 }>();
 
 const emit = defineEmits<{
-    (e: 'update', data: { type: string, value: string }): void;
+    (e: 'update', data: ChannelPreviewUpdate): void;
 }>();
 
 const userStore = useUserStore();
@@ -23,11 +24,14 @@ const handleBannerChange = async (event: Event) => {
     if (file && userStore.user_id) {
         try {
             const filePath = `${userStore.user_id}/${file.name}`;
-            await changeStore.updateBunnerUrl({
+
+            const params: FileUploadParams = {
                 id: userStore.user_id,
                 filePath,
                 file
-            });
+            };
+
+            await changeStore.updateBunnerUrl(params);
 
             await userStore.fetchUser();
             emit('update', { type: 'banner', value: URL.createObjectURL(file) });
@@ -67,5 +71,4 @@ const handleBannerChange = async (event: Event) => {
     </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

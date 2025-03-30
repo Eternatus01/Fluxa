@@ -1,5 +1,5 @@
-import { apiClient } from './../../../widgets/apiClient';
-import { useVideoApi } from './useVideoApi';
+import { apiClient } from '../../../widgets/apiClient';
+import { useVideoApi } from '../../video/composable/useVideoApi';
 
 interface ErrorMessage {
     message?: string;
