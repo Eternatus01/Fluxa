@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+
+@layer base {
+  body {
+    background-color: #0f0f0f;
+    color: rgba(255, 255, 255, 0.95);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  ::selection {
+    background-color: rgba(99, 102, 241, 0.2);
+    color: rgb(199, 210, 254);
+  }
+}
+
+/* Стилизация скроллбара */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #0F0F0F;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #262626;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #404040;
+}
+
+/* Плавные переходы для всех интерактивных элементов */
+a, button, input, select, textarea {
+  transition: all 0.2s ease;
+}
