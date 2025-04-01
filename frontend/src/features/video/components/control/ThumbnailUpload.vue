@@ -72,8 +72,8 @@ const triggerFileInput = () => {
                 <!-- Информация и кнопка загрузки -->
                 <div class="flex flex-col justify-between gap-3 flex-1">
                     <div>
-                        <p class="text-gray-300 text-sm">Рекомендуемый размер: 1280x720</p>
-                        <p class="text-gray-400 text-xs mt-1">Форматы: JPG, PNG, GIF</p>
+                        <p class="text-gray-300 text-sm">Рекомендуемый размер: 1920x1080</p>
+                        <p class="text-gray-400 text-xs mt-1">Форматы: JPG, PNG</p>
                     </div>
 
                     <label

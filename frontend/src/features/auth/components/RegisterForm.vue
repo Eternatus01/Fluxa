@@ -36,56 +36,36 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-    <form @submit.prevent="handleSubmit" class="register-form">
-        <div class="form-fields">
-            <AuthInput v-model="channel_name" type="text" placeholder="Название канала" />
-            <AuthInput v-model="username" type="text" placeholder="Username" />
-            <AuthInput v-model="email" type="email" placeholder="Email" />
-            <AuthInput v-model="password" type="password" placeholder="Пароль" />
+    <form @submit.prevent="handleSubmit" class="flex flex-col gap-6">
+        <div class="flex flex-col gap-4">
+            <AuthInput v-model="channel_name" type="text" placeholder="Название канала"
+                class="animate-[fadeIn_0.5s_ease-out_0.1s_both]" />
+            <AuthInput v-model="username" type="text" placeholder="Username"
+                class="animate-[fadeIn_0.5s_ease-out_0.2s_both]" />
+            <AuthInput v-model="email" type="email" placeholder="Email"
+                class="animate-[fadeIn_0.5s_ease-out_0.3s_both]" />
+            <AuthInput v-model="password" type="password" placeholder="Пароль"
+                class="animate-[fadeIn_0.5s_ease-out_0.4s_both]" />
         </div>
 
-        <div class="form-actions">
+        <div class="flex flex-col gap-4 mt-2 animate-[actionsAppear_0.5s_ease-out_0.5s_both]">
             <AuthButton :is-loading="isLoading" text="Регистрация" />
             <AuthError :error="error" />
         </div>
     </form>
 </template>
 
-<style scoped>
-.register-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
+<style>
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
 
-.form-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.form-fields> :nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.form-fields> :nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.form-fields> :nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-.form-fields> :nth-child(4) {
-    animation-delay: 0.4s;
-}
-
-.form-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 0.5rem;
-    animation: actionsAppear 0.5s ease-out 0.5s both;
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes actionsAppear {

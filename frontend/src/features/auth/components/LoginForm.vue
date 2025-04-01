@@ -30,46 +30,32 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-    <form @submit.prevent="handleSubmit" class="login-form">
-        <div class="form-fields">
-            <AuthInput v-model="email" type="email" placeholder="Email" />
-            <AuthInput v-model="password" type="password" placeholder="Пароль" />
+    <form @submit.prevent="handleSubmit" class="flex flex-col gap-6">
+        <div class="flex flex-col gap-4">
+            <AuthInput v-model="email" type="email" placeholder="Email"
+                class="animate-[fadeIn_0.5s_ease-out_0.1s_both]" />
+            <AuthInput v-model="password" type="password" placeholder="Пароль"
+                class="animate-[fadeIn_0.5s_ease-out_0.2s_both]" />
         </div>
 
-        <div class="form-actions">
+        <div class="flex flex-col gap-4 mt-2 animate-[actionsAppear_0.5s_ease-out_0.3s_both]">
             <AuthButton :is-loading="isLoading" text="Вход" />
             <AuthError :error="error" />
         </div>
     </form>
 </template>
 
-<style scoped>
-.login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
+<style>
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
 
-.form-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.form-fields> :nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.form-fields> :nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.form-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 0.5rem;
-    animation: actionsAppear 0.5s ease-out 0.3s both;
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes actionsAppear {

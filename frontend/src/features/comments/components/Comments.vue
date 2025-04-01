@@ -1,7 +1,7 @@
 <template>
     <div class="p-6 rounded-lg">
         <h2 class="text-xl font-semibold mb-4">Комментарии</h2>
-        <CommentForm @submit="handleAddComment" />
+        <CommentForm :videoId="video_id" @success="handleCommentSuccess" />
         <div v-if="isLoading" class="text-center py-4">
             Загрузка комментариев...
         </div>
@@ -9,7 +9,7 @@
             Нет комментариев. Будьте первым!
         </div>
         <div v-else v-for="comment in comments" :key="comment.id" class="mb-4">
-            <CommentItem :comment="comment" :video_userId="video_userId" :user_id="user_id"
+            <CommentItem :comment="comment" :video_userId="video_userId" :user_id="user_id" :video_id="video_id"
                 @delete-comment="handleDeleteComment" @add-reply="handleAddReply" />
         </div>
     </div>
@@ -37,12 +37,15 @@ const comments = ref<Comment[]>([]);
 const isLoading = ref(false);
 
 // Методы
-const handleAddComment = async (text: string) => {
+const handleCommentSuccess = async () => {
     try {
         isLoading.value = true;
-        await commentsStore.addComment(props.video_id, props.user_id, text);
+        const data = await commentsStore.fetchComments(props.video_id);
+        if (data) {
+            comments.value = data;
+        }
     } catch (error) {
-        console.error("Ошибка при добавлении комментария:", error);
+        console.error("Ошибка при обновлении комментариев:", error);
     } finally {
         isLoading.value = false;
     }

@@ -2,6 +2,10 @@
 import { ref } from 'vue';
 import FileUploadField from './FileUploadField.vue';
 import UploadProgress from './UploadProgress.vue';
+import UploadFormField from './UploadFormField.vue';
+import UploadFormSelect from './UploadFormSelect.vue';
+import UploadFormError from './UploadFormError.vue';
+import UploadFormButton from './UploadFormButton.vue';
 import type { VideoUploadParams } from '../../video/types/videoTypes';
 
 const emit = defineEmits<{
@@ -62,49 +66,19 @@ const handleSubmit = () => {
         <UploadProgress :is-uploading="isUploading" :progress="uploadProgress" />
 
         <!-- Сообщение об ошибке -->
-        <div v-if="uploadError"
-            class="bg-red-900/70 backdrop-blur-sm text-white p-4 rounded-lg mb-6 border border-red-700/50">
-            <div class="flex items-start gap-3">
-                <div class="text-red-400 mt-0.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div>
-                    <h4 class="font-medium text-red-200 mb-1">Ошибка загрузки</h4>
-                    <p class="text-sm text-red-100/80">{{ uploadError.message || 'Произошла ошибка при загрузке видео'
-                        }}</p>
-                </div>
-            </div>
-        </div>
+        <UploadFormError :error="uploadError" />
 
         <div class="space-y-6">
             <!-- Поле для названия видео -->
-            <div>
-                <label class="block text-sm font-medium mb-2 text-gray-200">Название видео</label>
-                <input type="text"
-                    class="w-full p-3 bg-[#252525] rounded-lg text-white border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Введите название видео" v-model="title">
-            </div>
+            <UploadFormField v-model="title" label="Название видео" placeholder="Введите название видео" />
 
             <!-- Поле для описания -->
-            <div>
-                <label class="block text-sm font-medium mb-2 text-gray-200">Описание</label>
-                <textarea
-                    class="w-full p-3 bg-[#252525] rounded-lg text-white border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    rows="4" placeholder="Опишите ваше видео" v-model="description"></textarea>
-            </div>
+            <UploadFormField v-model="description" label="Описание" type="textarea" :rows="4"
+                placeholder="Опишите ваше видео" />
 
             <!-- Поле для тегов -->
-            <div>
-                <label class="block text-sm font-medium mb-2 text-gray-200">Теги (через запятую)</label>
-                <input type="text"
-                    class="w-full p-3 bg-[#252525] rounded-lg text-white border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="gaming, tutorial, vlog" v-model="tags">
-                <p class="text-xs text-gray-400 mt-1">Разделяйте теги запятыми, например: music, новости, обзор</p>
-            </div>
+            <UploadFormField v-model="tags" label="Теги (через запятую)" placeholder="gaming, tutorial, vlog"
+                hint="Разделяйте теги запятыми, например: music, новости, обзор" />
 
             <!-- Поле для загрузки файла (видео) -->
             <FileUploadField label="Выберите видео для загрузки" accept="video/*" :max-size="100 * 1024 * 1024"
@@ -114,28 +88,11 @@ const handleSubmit = () => {
             <FileUploadField label="Загрузите миниатюру" accept="image/*" :max-size="5 * 1024 * 1024"
                 @file-selected="handleThumbnailSelected" />
 
-            <div>
-                <label class="block text-sm font-medium mb-2 text-gray-200">Тип видео</label>
-                <select v-model="videoType"
-                    class="w-full p-3 bg-[#252525] rounded-lg text-white border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                    <option value="public">Публичное</option>
-                    <option value="private">Приватное</option>
-                    <option value="link">Доступ по ссылке</option>
-                </select>
-                <p class="text-xs text-gray-400 mt-1">
-                    <span v-if="videoType === 'public'">Видео будет доступно всем пользователям</span>
-                    <span v-else-if="videoType === 'private'">Видео будет доступно только вам</span>
-                    <span v-else>Видео будет доступно только по прямой ссылке</span>
-                </p>
-            </div>
+            <!-- Выбор типа видео -->
+            <UploadFormSelect v-model="videoType" />
 
             <!-- Кнопка загрузки -->
-            <button
-                class="w-full py-3 bg-blue-600 rounded-lg hover:bg-blue-500 transition-all text-white font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
-                @click="handleSubmit" :disabled="isUploading">
-                <span v-if="isUploading">Загрузка...</span>
-                <span v-else>Загрузить видео</span>
-            </button>
+            <UploadFormButton :is-loading="isUploading" @click="handleSubmit" />
         </div>
     </section>
 </template>

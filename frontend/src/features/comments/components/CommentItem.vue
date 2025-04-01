@@ -10,7 +10,8 @@
             <CommentActions :commentId="comment.id" :likesCount="comment.likes_count || 0"
                 :dislikesCount="comment.dislikes_count || 0" @reply="toggleReply" />
 
-            <ReplyForm v-if="isReplyFormVisible" @submit="handleAddReply" @cancel="toggleReply" />
+            <ReplyForm v-if="isReplyFormVisible" :videoId="video_id" :parentId="comment.id"
+                @success="handleReplySuccess" @cancel="toggleReply" />
 
             <!-- Кнопка "Показать ответы" -->
             <p v-if="reply_count > 0" @click="toggleReplies" class="cursor-pointer text-blue-400 mt-2">
@@ -37,12 +38,12 @@ const props = defineProps<{
     comment: Comment;
     video_userId: string;
     user_id: string;
+    video_id: string;
 }>();
 
 // События
 const emit = defineEmits<{
     (event: 'delete-comment', commentId: string): void;
-    (event: 'add-reply', parentCommentId: string, text: string): void;
 }>();
 
 const commentsStore = useCommentsStore();
@@ -55,13 +56,10 @@ const toggleReply = () => {
     isReplyFormVisible.value = !isReplyFormVisible.value;
 };
 
-const handleAddReply = async (text: string) => {
-    emit('add-reply', props.comment.id, text);
+const handleReplySuccess = async () => {
     reply_count.value += 1;
     isReplyFormVisible.value = false;
-
-    getReplies()
-
+    await getReplies();
     areRepliesVisible.value = true;
 };
 

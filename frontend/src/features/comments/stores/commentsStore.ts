@@ -10,9 +10,12 @@ import {
     CommentError
 } from '../type/Comment';
 import { UserId } from '../../user/types/userTypes';
+import { CommentValidator, CommentRateLimiter, DEFAULT_LIMITS } from '../utils/commentLimits';
+import { useUserStore } from '@/features/user/stores/userStore';
 
 export const useCommentsStore = defineStore("comments", () => {
     const commentsApi = useCommentsApi();
+    const userStore = useUserStore();
 
     // Реактивные состояния
     const commentsMap = ref<Record<VideoId, Comment[]>>({});
@@ -20,12 +23,47 @@ export const useCommentsStore = defineStore("comments", () => {
     const isLoading = ref<boolean>(false);
     const error = ref<CommentError | null>(null);
 
+    const getComments = computed(() => commentsMap.value);
+    const getLoading = computed(() => isLoading.value);
+    const getError = computed(() => error.value);
+
     const addComment = async (
         videoId: VideoId,
         userId: UserId,
         text: CommentText,
         parentCommentId?: CommentId
     ): Promise<Comment | undefined> => {
+        if (!userStore.user) {
+            error.value = { message: 'Необходимо авторизоваться', status: 401 };
+            return undefined;
+        }
+
+        // Проверяем ограничения по контенту
+        const contentValidation = CommentValidator.validateComment(text, DEFAULT_LIMITS);
+        if (!contentValidation.isValid) {
+            error.value = { message: contentValidation.error || 'Ошибка валидации комментария' };
+            return undefined;
+        }
+
+        // Проверяем ограничения по частоте
+        const rateLimit = CommentRateLimiter.canComment(userId, DEFAULT_LIMITS);
+        if (!rateLimit.canComment) {
+            error.value = { message: rateLimit.error || 'Превышен лимит комментариев' };
+            return undefined;
+        }
+
+        // Проверяем уровень вложенности для ответов
+        if (parentCommentId) {
+            const parentComment = commentsMap.value[videoId]?.find(c => c.id === parentCommentId);
+            if (parentComment) {
+                // Если это ответ на ответ, проверяем уровень вложенности родительского комментария
+                if (parentComment.parent_id) {
+                    error.value = { message: `Максимальная глубина вложенности комментариев: ${DEFAULT_LIMITS.maxNestingLevel}` };
+                    return undefined;
+                }
+            }
+        }
+
         isLoading.value = true;
         error.value = null;
 
@@ -79,6 +117,11 @@ export const useCommentsStore = defineStore("comments", () => {
     };
 
     const deleteComment = async (comment_id: CommentId): Promise<void> => {
+        if (!userStore.user) {
+            error.value = { message: 'Необходимо авторизоваться', status: 401 };
+            return;
+        }
+
         isLoading.value = true;
         error.value = null;
 
@@ -130,9 +173,9 @@ export const useCommentsStore = defineStore("comments", () => {
         clearCache,
 
         // Состояния
-        comments: computed(() => commentsMap.value),
+        comments: getComments,
         replies: computed(() => repliesMap.value),
-        isLoading: computed(() => isLoading.value),
-        error: computed(() => error.value)
+        isLoading: getLoading,
+        error: getError
     };
 });
