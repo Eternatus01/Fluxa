@@ -51,10 +51,7 @@ export const useChangeApi = () => {
 
             // Обновляем локальное состояние
             userStore.setAvatar(avatar_url);
-
-            // Инвалидируем кэш пользователя
-            invalidateUserCache(id, userStore.user?.username);
-
+            invalidateApiCache('/me', { method: 'GET' }, 'user:currentUser');
             return avatar_url;
         } catch (error) {
             const err = error as ErrorMessage;
@@ -95,10 +92,8 @@ export const useChangeApi = () => {
             });
 
             // Обновляем локальное состояние
-            userStore.setBunner(bunner_url);
-
-            // Инвалидируем кэш пользователя
-            invalidateUserCache(id, userStore.user?.username);
+            userStore.setBunner(bunner_url);            
+            invalidateApiCache('/me', { method: 'GET' }, 'user:currentUser');
 
             return bunner_url;
         } catch (error) {
@@ -125,7 +120,7 @@ export const useChangeApi = () => {
             });
 
             // Инвалидируем кэш пользователя
-            invalidateUserCache(id, userStore.user?.username);
+            invalidateApiCache('/me', { method: 'GET' }, 'user:currentUser');
 
             return response.channel_name;
         } catch (error) {

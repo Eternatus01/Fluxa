@@ -3,6 +3,7 @@ import { body, validationResult } from "express-validator";
 import * as controllerAvatar from "./avatar/controller.js";
 import * as controllerBunner from "./bunner/controller.js";
 import * as controllerVideo from "./video/controller.js";
+import * as controllerPlaylist from "./playlists/controller.js";
 import { ValidationError } from "../../middlewares/ValidationError.js";
 import multer from "multer";
 import { authenticate } from "../../middlewares/auth.js";
@@ -61,6 +62,15 @@ router.post(
   body("thumbnailPath").notEmpty(),
   validate,
   controllerVideo.updateTumbnail
+);
+
+router.post(
+  "/playlist-cover",
+  authenticate,
+  upload.single("file"),
+  body("coverPath").notEmpty().withMessage("coverPath is required"),
+  validate,
+  controllerPlaylist.uploadCover
 );
 
 export default router;

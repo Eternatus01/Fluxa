@@ -16,9 +16,5 @@ defineProps<{
         </div>
         <p class="text-red-500 text-lg mb-2">Произошла ошибка</p>
         <p class="text-gray-400 text-center max-w-md px-4">{{ message }}</p>
-        <button @click="window.location.reload()"
-            class="mt-6 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-white transition-colors duration-200">
-            Обновить страницу
-        </button>
     </div>
 </template>

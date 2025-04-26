@@ -13,9 +13,12 @@ import {
     Username,
     UserState,
 } from '../types/userTypes';
+import { invalidateApiCache } from '@/shared/api/apiClientWithCache';
+import { useUiStore } from '@/shared/stores/uiStore';
 
 export const useUserStore = defineStore("user", () => {
     const userApi = useUserApi();
+    const uiStore = useUiStore();
 
     // Реактивные состояния
     const user = ref<UserData | null>(null);
@@ -26,7 +29,6 @@ export const useUserStore = defineStore("user", () => {
     const user_id = ref<UserId>('');
     const usersCache = ref<UsersCache>({});
     const usernameToIdMap = ref<UsernameToIdMap>({});
-    const isLoading = ref<boolean>(false);
     const error = ref<UserError | null>(null);
 
     // Обновление состояния пользователя
@@ -45,7 +47,7 @@ export const useUserStore = defineStore("user", () => {
 
     // Получение текущего пользователя
     const fetchUser = async (): Promise<UserData> => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -69,7 +71,7 @@ export const useUserStore = defineStore("user", () => {
             error.value = userError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -80,7 +82,7 @@ export const useUserStore = defineStore("user", () => {
             return usersCache.value[userId];
         }
 
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -101,7 +103,7 @@ export const useUserStore = defineStore("user", () => {
             error.value = userError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -124,7 +126,7 @@ export const useUserStore = defineStore("user", () => {
             return cachedUsers;
         }
 
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -149,7 +151,7 @@ export const useUserStore = defineStore("user", () => {
             error.value = userError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -160,7 +162,7 @@ export const useUserStore = defineStore("user", () => {
             return usersCache.value[usernameToIdMap.value[username]];
         }
 
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -181,7 +183,7 @@ export const useUserStore = defineStore("user", () => {
             error.value = userError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -216,21 +218,14 @@ export const useUserStore = defineStore("user", () => {
 
     // Обновление профиля пользователя
     const updateUserProfile = async (params: UpdateUserProfileParams): Promise<UserData> => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
             const updatedUser = await userApi.updateUserProfile(params);
-            updateUserState(updatedUser);
-
-            // Обновляем кэш
-            if (updatedUser.id) {
-                usersCache.value[updatedUser.id] = updatedUser;
-                if (updatedUser.username) {
-                    usernameToIdMap.value[updatedUser.username] = updatedUser.id;
-                }
-            }
-
+            setUser(updatedUser);
+            // Инвалидируем кэш
+            invalidateApiCache('/me', { method: 'GET' }, 'user:currentUser');
             return updatedUser;
         } catch (err) {
             const userError: UserError = {
@@ -240,7 +235,7 @@ export const useUserStore = defineStore("user", () => {
             error.value = userError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -330,7 +325,6 @@ export const useUserStore = defineStore("user", () => {
         bunner_url: computed(() => bunner_url.value),
         channel_name: computed(() => channel_name.value),
         user_id: computed(() => user_id.value),
-        isLoading: computed(() => isLoading.value),
         error: computed(() => error.value),
         usersCache: computed(() => usersCache.value),
         username: computed(() => username.value),

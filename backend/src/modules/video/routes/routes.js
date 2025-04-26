@@ -68,6 +68,9 @@ router.get(
   controller.getVideo
 );
 
+// Получить все видео пользователей, на которых подписан
+router.get("/subscriptions", controller.getSubscribedVideos);
+
 // Теги
 
 router.post(

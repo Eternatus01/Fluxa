@@ -279,4 +279,62 @@ export default class VideoService {
       throw error;
     }
   }
+
+  static async getSubscribedVideos(subscriber_id) {
+    try {
+      // Получаем id всех пользователей, на которых подписан subscriber_id
+      const { data: subscriptions, error: subError } = await supabase
+        .from("subscriptions")
+        .select("target_user_id")
+        .eq("subscriber_id", subscriber_id);
+      if (subError) throw subError;
+      const targetIds = subscriptions?.map((s) => s.target_user_id) || [];
+      if (!targetIds.length) return [];
+      // Получаем все видео этих пользователей
+      const { data, error } = await supabase
+        .from("videos")
+        .select(
+          `
+          id, 
+          title, 
+          created_at, 
+          views, 
+          likes_count, 
+          dislikes_count, 
+          user:user_id (
+            channel_name, 
+            avatar_url
+          ), 
+          thumbnail_url, 
+          user_id
+        `
+        )
+        .eq("type", "public")
+        .in("user_id", targetIds)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Ошибка при получении всех видео:", error);
+        throw error;
+      }
+
+      return [
+        ...(data || []).map((video) => ({
+          id: video.id,
+          title: video.title,
+          created_at: video.created_at,
+          views: video.views,
+          likes_count: video.likes_count,
+          dislikes_count: video.dislikes_count,
+          thumbnail_url: video.thumbnail_url,
+          user_id: video.user_id,
+          channel_name: video.user?.channel_name,
+          avatar_url: video.user?.avatar_url,
+        })),
+      ];
+    } catch (error) {
+      console.error("Ошибка при получении видео по подпискам:", error);
+      throw error;
+    }
+  }
 }

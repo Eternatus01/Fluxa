@@ -18,28 +18,29 @@
     </nav>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useUserStore } from './../../../features/user/stores/userStore';
 import { useAuthStore } from '../../../features/auth/stores/auth';
 import { computed, onMounted } from 'vue';
 import MenuAvatar from './MenuAvatar.vue';
 
+interface NavLink {
+    to: string;
+    text: string;
+    id?: string;
+}
+
 const userStore = useUserStore();
 const authStore = useAuthStore();
-
-// Проверяем авторизацию при монтировании компонента
-onMounted(() => {
-    authStore.checkAuth();
-});
 
 // Вычисляемые свойства для проверки состояния авторизации
 const isAuthenticated = computed(() => !!userStore.user);
 const isCheckingAuth = computed(() => authStore.isCheckingAuth);
 
-const navLinksAuth = [
-    { to: '/subscriptions', text: 'Подписки' },
-    { to: '/playlist', text: 'Плейлисты' },
-    { to: '/history', text: 'История' },
-    { to: '/upload', text: '+' },
+const navLinksAuth: NavLink[] = [
+    { to: '/subscriptions', text: 'Подписки', id: 'subscriptions' },
+    { to: '/playlists', text: 'Плейлисты', id: 'playlists' },
+    { to: '/history', text: 'История', id: 'history' },
+    { to: '/upload', text: '+', id: 'upload' },
 ]
 </script>

@@ -1,6 +1,7 @@
 <template>
     <div class="min-h-screen">
-        <main class="container mx-auto px-4 py-8">
+        <LoadingState v-if="uiStore.isLoading" />
+        <main v-else class="container mx-auto px-4 py-8">
             <div class="max-w-4xl mx-auto">
                 <h1 class="text-2xl md:text-3xl font-bold mb-6">Загрузка видео</h1>
                 <UploadForm :is-uploading="isUploading" :upload-progress="uploadProgress" :upload-error="uploadError"
@@ -17,15 +18,19 @@ import { storeToRefs } from 'pinia';
 import UploadForm from '../../upload/components/UploadForm.vue';
 import type { VideoUploadParams } from '../../video/types/videoTypes';
 import { useRouter } from 'vue-router';
+import { useUiStore } from '@/shared/stores/uiStore';
+import LoadingState from '@/shared/ui/molecules/LoadingState.vue';
 
 const userStore = useUserStore();
 const uploadStore = useUploadStore();
 const router = useRouter();
+const uiStore = useUiStore();
 
 // Получаем реактивные состояния из стора
 const { isUploading, uploadProgress, uploadError } = storeToRefs(uploadStore);
 
 const handleUpload = async (data: VideoUploadParams) => {
+    uiStore.isLoading = true;
     try {
         const user = userStore.user;
         if (!user) {
@@ -41,7 +46,7 @@ const handleUpload = async (data: VideoUploadParams) => {
             data.thumbnailFile!,
             userId,
             data.title,
-            data.description,
+            data.description || '',
             data.tags,
             data.videoType
         );
@@ -52,6 +57,8 @@ const handleUpload = async (data: VideoUploadParams) => {
         }
     } catch (error) {
         console.error('Ошибка загрузки видео:', error);
+    } finally {
+        uiStore.isLoading = false;
     }
 };
 </script>

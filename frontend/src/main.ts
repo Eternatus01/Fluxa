@@ -7,4 +7,4 @@ import { VueQueryPlugin } from 'vue-query';
 
 const pinia = createPinia();
 
-createApp(App).use(router).use(pinia).use(VueQueryPlugin).mount('#app')
+createApp(App).use(pinia).use(router).use(VueQueryPlugin).mount('#app')

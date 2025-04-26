@@ -97,3 +97,14 @@ export const searchVideos = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getSubscribedVideos = async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ error: "user_id обязателен" });
+    const videos = await VideoService.getSubscribedVideos(user_id);
+    res.status(200).json(videos);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

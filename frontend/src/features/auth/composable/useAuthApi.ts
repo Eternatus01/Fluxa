@@ -90,8 +90,6 @@ export const useAuthApi = () => {
                     ttl: 24 * 60 * 60 * 1000 // 24 часа
                 }
             );
-            const userStore = useUserStore();
-            userStore.fetchUser();
             return data.value.user;
         } catch (error) {
             const err = error as ErrorMessage;
@@ -113,9 +111,7 @@ export const useAuthApi = () => {
             // Инвалидируем кэши текущего пользователя
             invalidateApiCache('http://localhost:3001/api/user/me', { method: 'GET' }, 'user:currentUser');
             invalidateApiCache('http://localhost:3001/api/user/me', { method: 'GET' }, 'user:current');
-
-            // Чистим все возможные кэши пользователя при выходе
-            console.log('Очистка всех кэшей пользователя при выходе');
+            localStorage.removeItem('auth_token')
         } catch (error) {
             const err = error as ErrorMessage;
             const authError: AuthError = {

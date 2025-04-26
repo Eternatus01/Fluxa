@@ -12,19 +12,19 @@ import {
 import { UserId } from '../../user/types/userTypes';
 import { CommentValidator, CommentRateLimiter, DEFAULT_LIMITS } from '../utils/commentLimits';
 import { useUserStore } from '@/features/user/stores/userStore';
+import { useUiStore } from '@/shared/stores/uiStore';
 
 export const useCommentsStore = defineStore("comments", () => {
     const commentsApi = useCommentsApi();
     const userStore = useUserStore();
+    const uiStore = useUiStore();
 
     // Реактивные состояния
     const commentsMap = ref<Record<VideoId, Comment[]>>({});
     const repliesMap = ref<Record<CommentId, Comment[]>>({});
-    const isLoading = ref<boolean>(false);
     const error = ref<CommentError | null>(null);
 
     const getComments = computed(() => commentsMap.value);
-    const getLoading = computed(() => isLoading.value);
     const getError = computed(() => error.value);
 
     const addComment = async (
@@ -64,7 +64,7 @@ export const useCommentsStore = defineStore("comments", () => {
             }
         }
 
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -90,12 +90,12 @@ export const useCommentsStore = defineStore("comments", () => {
             error.value = err as CommentError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
     const fetchComments = async (video_id: VideoId): Promise<Comment[] | undefined> => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -112,7 +112,7 @@ export const useCommentsStore = defineStore("comments", () => {
             error.value = err as CommentError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -122,7 +122,7 @@ export const useCommentsStore = defineStore("comments", () => {
             return;
         }
 
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -135,12 +135,12 @@ export const useCommentsStore = defineStore("comments", () => {
             error.value = err as CommentError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
     const getReplies = async (comment_id: CommentId): Promise<Comment[] | undefined> => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -154,7 +154,7 @@ export const useCommentsStore = defineStore("comments", () => {
             error.value = err as CommentError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -175,7 +175,6 @@ export const useCommentsStore = defineStore("comments", () => {
         // Состояния
         comments: getComments,
         replies: computed(() => repliesMap.value),
-        isLoading: getLoading,
         error: getError
     };
 });

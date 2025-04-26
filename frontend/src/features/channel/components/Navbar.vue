@@ -1,14 +1,15 @@
 <template>
     <nav class="channel-navbar">
-        <ul class="tabs-container">
-            <li v-for="(tab, index) in tabs" :key="tab.name" class="tab-item"
-                :class="{ 'active': isActive(tab.routeName) }" :style="{ 'animation-delay': `${0.1 + index * 0.1}s` }">
-                <router-link :to="{ name: tab.routeName, params: { username: username } }" class="tab-link">
+        <div class="tabs-container">
+            <router-link :to="{ name: tab.routeName, params: { username: username } }" v-for="(tab, index) in tabs"
+                :key="tab.name" class="tab-item" :class="{ 'active': isActive(tab.routeName) }"
+                :style="{ 'animation-delay': `${0.1 + index * 0.1}s` }">
+                <span class="tab-link">
                     {{ tab.name }}
-                </router-link>
+                </span>
                 <span v-if="isActive(tab.routeName)" class="active-indicator"></span>
-            </li>
-        </ul>
+            </router-link>
+        </div>
     </nav>
 </template>
 
@@ -25,17 +26,16 @@ const isActive = (routeName: string) => {
 }
 
 const tabs = [
-    { name: 'Видео', routeName: 'Home' },
-    { name: 'Плейлисты', routeName: 'Home' },
-    { name: 'Трансляции', routeName: 'Home' },
-    { name: 'Посты', routeName: 'Home' },
+    { name: 'Видео', routeName: 'Channel_Videos' },
+    { name: 'Плейлисты', routeName: 'Channel_Playlists' },
 ]
 </script>
 
 <style scoped>
 .channel-navbar {
-    margin: 1rem 0 2rem;
-    padding: 0 1rem;
+    padding: 0 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .tabs-container {

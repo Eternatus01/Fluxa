@@ -2,24 +2,26 @@
 import { computed, onMounted, watch, ref } from 'vue';
 import { useUserStore } from '@/features/user/stores/userStore';
 import { useSubscriptionStore } from '../stores/subscription';
-import { SubscriptionError } from '../types/subscriptionTypes';
 import LoadingState from '@/shared/ui/molecules/LoadingState.vue';
 import ErrorState from '@/shared/ui/molecules/ErrorState.vue';
 import SubscriptionList from '../components/SubscriptionList.vue';
+import { useUiStore } from '@/shared/stores/uiStore';
 
 const userStore = useUserStore();
 const subscriptionStore = useSubscriptionStore();
+const uiStore = useUiStore();
 const dataLoaded = ref(false);
 
 const userId = computed(() => userStore.user_id);
-const isLoading = computed(() => subscriptionStore.isLoading);
 const error = computed(() => subscriptionStore.error);
 const subscriptions = computed(() => subscriptionStore.subscriptions);
 
 const fetchSubscriptions = async () => {
     // Проверяем, есть ли пользователь и не загружены ли уже данные
     if (userId.value && !dataLoaded.value) {
+        uiStore.isLoading = true;
         await subscriptionStore.fetchUserSubscriptions(userId.value);
+        uiStore.isLoading = false;
         dataLoaded.value = true;
     }
 };
@@ -37,15 +39,12 @@ onMounted(fetchSubscriptions);
 </script>
 
 <template>
-    <div class="min-h-screen bg-[#0f0f0f]">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 class="text-2xl font-bold text-white mb-6">Мои подписки</h1>
-
-            <div class="rounded-xl overflow-hidden">
-                <LoadingState v-if="isLoading" />
-                <ErrorState v-else-if="error" :message="error.message" />
-                <SubscriptionList v-else :subscriptions="subscriptions" class="animate-fade-in" />
-            </div>
+    <div class="min-h-screen bg-transparent">
+        <div class="container mx-auto px-4 py-10">
+            <h1 class="text-3xl font-bold text-center text-white mb-8">Мои подписки</h1>
+            <LoadingState v-if="uiStore.isLoading" />
+            <ErrorState v-else-if="error" :message="error.message" />
+            <SubscriptionList v-else :subscriptions="subscriptions" />
         </div>
     </div>
 </template>

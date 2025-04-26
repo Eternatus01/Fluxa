@@ -18,7 +18,6 @@ defineProps({
     width: 100%;
     position: relative;
     padding-top: 33.33%;
-    /* Соотношение 16:9 (9/16*100% ≈ 56.25%), но немного ниже для лучшего вида */
     overflow: hidden;
 }
 
@@ -30,6 +29,5 @@ defineProps({
     height: 100%;
     object-fit: cover;
     object-position: center 25%;
-    /* Немного выше центра */
 }
 </style>

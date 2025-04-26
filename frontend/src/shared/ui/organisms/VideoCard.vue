@@ -1,37 +1,26 @@
 <template>
-    <router-link :to="`/watch/${video.id}`"
-        class="group block bg-[#1e1e1e]/60 rounded-lg overflow-hidden hover:bg-[#252525]/70 transition-all duration-300">
+    <router-link :to="`/watch/${video.id}`" class="group block transition-all duration-300">
         <div class="relative aspect-video overflow-hidden">
             <img :src="video.thumbnail_url" :alt="video.title"
-                class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:filter group-hover:brightness-110" />
+                class="w-full h-full object-cover transition-all duration-500 group-hover:scale-102 rounded-lg" />
 
-            <div
-                class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            </div>
-
-            <div
-                class="absolute bottom-3 right-3 bg-black/80 backdrop-blur-[2px] text-white px-2 py-0.5 rounded-md text-xs font-medium shadow-sm">
+            <div class="absolute bottom-2 right-2 text-white/80 text-xs font-medium">
                 10:24
             </div>
         </div>
 
-        <div class="flex gap-3 p-3">
+        <div class="flex gap-2 p-2 py-4">
             <div class="relative">
-                <img :src="avatarUrl" :alt="channelName"
-                    class="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-blue-500/50 transition-all duration-300" />
+                <img :src="avatarUrl" :alt="channelName" class="w-8 h-8 rounded-full object-cover" />
             </div>
 
             <div class="flex-1 min-w-0">
                 <h3
-                    class="font-medium text-sm text-white line-clamp-2 leading-tight mb-1.5 group-hover:text-blue-400 transition-colors duration-300">
+                    class="font-normal text-[15px] text-white line-clamp-2 leading-tight mb-1 group-hover:text-red-400 transition-colors duration-300">
                     {{ video.title }}
                 </h3>
-
-                <div class="flex flex-col gap-1">
-                    <p class="text-xs text-gray-300 truncate group-hover:text-gray-200 transition-colors duration-300">
-                        {{ channelName }}
-                    </p>
-
+                <div class="flex flex-col gap-0.5">
+                    <p class="text-xs text-gray-400 truncate">{{ channelName }}</p>
                     <div class="flex items-center text-[11px] text-gray-400 gap-2">
                         <span>{{ formattedViews }}</span>
                         <span class="w-1 h-1 bg-gray-500 rounded-full"></span>

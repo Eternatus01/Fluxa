@@ -10,7 +10,6 @@ import {
 import { UserId } from '../../user/types/userTypes';
 
 export const useCommentsApi = () => {
-    // Создаем экземпляр API с кэшированием для комментариев
     const api = useApiWithCache('comments', {
         baseUrl: 'http://localhost:3001',
         defaultCacheOptions: {

@@ -34,10 +34,13 @@ import ChannelInfo from '../components/ChannelInfo.vue';
 import Comments from '../../comments/components/Comments.vue';
 import RelatedVideos from '../components/RelatedVideos.vue';
 import { useReactionStore } from '../../reactions/stores/reactionStore';
+import { useUiStore } from '@/shared/stores/uiStore';
+import LoadingState from '@/shared/ui/molecules/LoadingState.vue';
 
 const userStore = useUserStore();
 const videoStore = useVideoStore();
 const reactionStore = useReactionStore();
+const uiStore = useUiStore();
 
 const props = defineProps({
     id: String,
@@ -55,6 +58,7 @@ const relatedVideos = ref([
 
 // Загрузка данных видео
 onMounted(async () => {
+    uiStore.isLoading = true;
     try {
         // Загружаем видео без кэширования для получения актуальных данных
         const videoData = await videoStore.fetchVideo(props.id, user_id.value);
@@ -71,6 +75,8 @@ onMounted(async () => {
         await reactionStore.fetchReactions(props.id);
     } catch (error) {
         console.error("Ошибка при загрузке данных видео:", error);
+    } finally {
+        uiStore.isLoading = false;
     }
 });
 </script>

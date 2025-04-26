@@ -3,9 +3,13 @@ interface Props {
     type: 'text' | 'email' | 'password';
     modelValue: string;
     placeholder: string;
+    maxlength?: number;
+    minlength?: number;
+    pattern?: string;
+    autocomplete?: string;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 defineEmits(['update:modelValue']);
 </script>
 
@@ -13,7 +17,10 @@ defineEmits(['update:modelValue']);
     <div class="input-container">
         <input :type="type" :value="modelValue"
             @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)" :placeholder="placeholder"
-            class="auth-input" />
+            :maxlength="props.maxlength || (type === 'password' ? 64 : 100)" :minlength="props.minlength"
+            :pattern="props.pattern"
+            :autocomplete="props.autocomplete || (type === 'password' ? 'current-password' : type === 'email' ? 'email' : 'off')"
+            spellcheck="false" class="auth-input" />
         <div class="input-focus-line"></div>
     </div>
 </template>

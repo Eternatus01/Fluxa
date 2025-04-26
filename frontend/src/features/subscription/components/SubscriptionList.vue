@@ -14,7 +14,7 @@ const hasSubscriptions = computed(() => {
 </script>
 
 <template>
-    <div v-if="hasSubscriptions" class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-6">
+    <div v-if="hasSubscriptions" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
         <SubscriptionCard v-for="(subscription, index) in subscriptions" :key="subscription.id"
             :subscription="subscription" :style="{ 'animation-delay': `${index * 0.05}s` }" class="subscription-card" />
     </div>

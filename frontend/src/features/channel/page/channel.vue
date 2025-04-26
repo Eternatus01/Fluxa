@@ -1,64 +1,38 @@
 <template>
     <div class="channel-page">
-        <LoadingState v-if="isLoading" message="Загрузка данных канала..." />
-
-        <ErrorState v-else-if="error" :message="error" />
+        <ErrorState v-if="error" :message="error" />
 
         <template v-else>
             <ChannelHeader v-if="user" :user="user" />
+            <NavBar />
             <main class="channel-content">
-                <NavBar />
-                <div v-if="videos && videos.length > 0" class="videos-grid">
-                    <VideoCard v-for="(video, index) in videos" :key="video.id" :video="video"
-                        :style="{ 'animation-delay': `${0.1 + index * 0.05}s` }" class="video-card-animate" />
-                </div>
-                <div v-else class="empty-state">
-                    <div class="empty-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-                            <line x1="7" y1="2" x2="7" y2="22"></line>
-                            <line x1="17" y1="2" x2="17" y2="22"></line>
-                            <line x1="2" y1="12" x2="22" y2="12"></line>
-                            <line x1="2" y1="7" x2="7" y2="7"></line>
-                            <line x1="2" y1="17" x2="7" y2="17"></line>
-                            <line x1="17" y1="17" x2="22" y2="17"></line>
-                            <line x1="17" y1="7" x2="22" y2="7"></line>
-                        </svg>
-                    </div>
-                    <p class="empty-text">На этом канале пока нет видео</p>
-                </div>
+                <router-view />
             </main>
         </template>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUserStore } from '@/features/user/stores/userStore';
 import { useVideoStore } from '@/features/video/stores/videoStore';
 import ChannelHeader from '../components/ChannelHeader.vue';
-import VideoCard from '@/shared/ui/organisms/VideoCard.vue';
 import NavBar from '../components/Navbar.vue';
-import LoadingState from '@/shared/ui/molecules/LoadingState.vue';
 import ErrorState from '@/shared/ui/molecules/ErrorState.vue';
-import type { UserData } from '@/features/user/types/userTypes';
+import { useUiStore } from '@/shared/stores/uiStore';
 
 const route = useRoute();
 const userStore = useUserStore();
 const videoStore = useVideoStore();
+const uiStore = useUiStore();
 
 const user = ref<any>(null);
-const isLoading = ref(true);
 const error = ref<string | null>(null);
-
-// Используем computed для получения видео из стора
-const videos = computed(() => videoStore.videosUser);
 
 // Функция для загрузки данных пользователя и его видео
 const loadUserData = async (username: string) => {
-    isLoading.value = true;
+    uiStore.isLoading = true;
     error.value = null;
 
     try {
@@ -83,7 +57,7 @@ const loadUserData = async (username: string) => {
         console.error('Ошибка при загрузке данных:', err);
         error.value = 'Произошла ошибка при загрузке данных канала';
     } finally {
-        isLoading.value = false;
+        uiStore.isLoading = false;
     }
 };
 
@@ -109,7 +83,6 @@ onMounted(() => {
 <style scoped>
 .channel-page {
     min-height: 100vh;
-    background-color: #0f0f0f;
 }
 
 .channel-content {

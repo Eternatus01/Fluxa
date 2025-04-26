@@ -1,6 +1,7 @@
 import { apiClient } from "./../../../widgets/apiClient";
 import { useApiWithCache } from "../../../shared/composables/useApiWithCache";
 import type { Video } from "../types/videoTypes";
+import { invalidateApiCache } from "@/shared/api/apiClientWithCache";
 
 interface ErrorMessage {
     message?: string;
@@ -26,7 +27,8 @@ export const useVideoApi = () => {
         try {
             const { data } = await api.get<ApiResponse<Video[]>>('/api/video/all', {}, {
                 key: 'videos:all',
-                ttl: 5 * 60 * 1000 // 5 минут для списка всех видео
+                ttl: 5 * 60 * 1000,
+                forceRefresh: true
             });
             return data.value;
         } catch (error) {
@@ -58,7 +60,7 @@ export const useVideoApi = () => {
             const { data } = await api.get<ApiResponse<Video>>(`/api/video/fetch?id=${id}&user_id=${user_id}`, {}, {
                 key: `video:${id}`,
                 ttl: 5 * 60 * 1000,
-                forceRefresh
+                forceRefresh: true
             });
             return data.value;
         } catch (error) {
@@ -78,9 +80,8 @@ export const useVideoApi = () => {
                 method: 'POST',
                 data: { video_id }
             });
-
-            // Инвалидируем кэш для этого видео
-            invalidateVideoCache(video_id, user_id);
+            
+            api.invalidateCache(`video:${video_id}`);
         } catch (error) {
             const err = error as ErrorMessage;
             throw new Error(err?.message || 'Не удалось добавить просмотр');
@@ -179,6 +180,21 @@ export const useVideoApi = () => {
         }
     };
 
+    const fetchSubscribedVideos = async (user_id: string): Promise<Video[]> => {
+        if (!user_id) throw new Error('ID пользователя не указан');
+        try {
+            const { data } = await api.get<ApiResponse<Video[]>>(`/api/video/subscriptions?user_id=${user_id}`, {}, {
+                key: `videos:subs:${user_id}`,
+                ttl: 5 * 60 * 1000,
+                forceRefresh: true
+            });
+            return data.value;
+        } catch (error) {
+            const err = error as ErrorMessage;
+            throw new Error(err?.message || 'Не удалось загрузить видео по подпискам');
+        }
+    };
+
     return {
         fetchVideos,
         fetchUserVideos,
@@ -188,5 +204,6 @@ export const useVideoApi = () => {
         invalidateVideoCache,
         clearVideoCache,
         searchVideos,
+        fetchSubscribedVideos,
     };
 };

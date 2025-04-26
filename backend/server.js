@@ -12,7 +12,8 @@ import videoRoutes from "./src/modules/video/routes/routes.js";
 import subscriptionRoutes from "./src/modules/subscription/routes.js";
 import viewsRoutes from "./src/modules/views/routes.js";
 import reactionsRoutes from "./src/modules/reactions/routes.js";
-import historyRoutes from "./src/modules/history/routes.js"
+import historyRoutes from "./src/modules/history/routes.js";
+import playlistRoutes from "./src/modules/playlist/routes/routes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/views", viewsRoutes);
 app.use("/api/reactions", reactionsRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/playlist", playlistRoutes);
 
 //Подключение обработчика ошибок
 app.use(errorHandler);

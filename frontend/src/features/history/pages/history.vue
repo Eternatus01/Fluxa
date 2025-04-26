@@ -5,20 +5,24 @@ import { useHistoryStore } from '../stores/historyStore';
 import LoadingState from '@/shared/ui/molecules/LoadingState.vue';
 import ErrorState from '@/shared/ui/molecules/ErrorState.vue';
 import HistoryList from '../components/HistoryList.vue';
+import { useUiStore } from '@/shared/stores/uiStore';
 
 const userStore = useUserStore();
 const historyStore = useHistoryStore();
+const uiStore = useUiStore();
 
 const history = computed(() => historyStore.history);
 const user_id = computed(() => userStore.user_id);
-const isLoading = computed(() => historyStore.isLoading);
 const error = computed(() => historyStore.error);
 
 const fetchHistory = async () => {
+    uiStore.isLoading = true;
     try {
         await historyStore.fetchHistory(user_id.value);
     } catch (error) {
         console.error("Ошибка при загрузке истории:", error);
+    } finally {
+        uiStore.isLoading = false;
     }
 };
 
@@ -37,7 +41,7 @@ onMounted(async () => {
                 <p class="text-gray-400 mt-2 text-sm">Список видео, которые вы недавно смотрели</p>
             </header>
 
-            <LoadingState v-if="isLoading" message="Загрузка истории просмотров..." />
+            <LoadingState v-if="uiStore.isLoading" message="Загрузка истории просмотров..." />
 
             <ErrorState v-else-if="error"
                 :message="error.message || 'Произошла ошибка при загрузке истории просмотров'" />

@@ -1,92 +1,38 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from "../../features/auth/stores/auth";
+import { setupAuthGuard } from "./guards/auth.guard";
+
+// Импорт маршрутов из отдельных файлов
+import homeRoutes from "./routes/home.routes";
+import authRoutes from "./routes/auth.routes";
+import channelRoutes from "./routes/channel.routes";
+import videoRoutes from "./routes/video.routes";
+import playlistRoutes from "./routes/playlist.routes";
+import errorRoutes from "./routes/error.routes";
+
+// Объединение всех маршрутов
 const routes = [
-  {
-    path: "/",
-    name: "Home",
-    component: () => import("../../pages/home.vue"),
-  },
-  {
-    path: "/login",
-    name: "Login",
-    component: () => import("../../features/auth/pages/login.vue"),
-  },
-  {
-    path: "/register",
-    name: "Register",
-    component: () => import("../../features/auth/pages/register.vue"),
-  },
-  {
-    path: "/upload",
-    name: "Upload",
-    component: () => import("../../features/upload/pages/upload.vue"),
-  },
-  {
-    path: "/subscriptions",
-    name: "Subscriptions",
-    component: () => import("../../features/subscription/pages/subscriptions.vue"),
-  },
-  {
-    path: "/@:username",
-    name: "Channel",
-    component: () => import("../../features/channel/page/channel.vue"),
-    props: true,
-  },
-  {
-    path: "/settings",
-    name: "Settings",
-    component: () => import("../../features/channel/page/channel_settings.vue"),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/history",
-    name: "History",
-    component: () => import("../../features/history/pages/history.vue"),
-  },
-  {
-    path: "/watch/:id",
-    name: "Watch",
-    component: () => import("../../features/video/pages/watch.vue"),
-    props: true,
-  },
-  {
-    path: "/video/control/:id",
-    name: "VideoControl",
-    component: () => import("../../features/video/pages/videoControl.vue"),
-    props: true,
-  },
+  ...homeRoutes,
+  ...authRoutes,
+  ...channelRoutes,
+  ...videoRoutes,
+  ...playlistRoutes,
+  ...errorRoutes,
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-});
-
-// Защита маршрутов, требующих авторизации
-router.beforeEach(async (to, from, next) => {
-  const authStore = useAuthStore();
-
-  // Проверяем, требует ли маршрут авторизации
-  if (to.meta.requiresAuth) {
-    try {
-      // Проверяем авторизацию пользователя
-      await authStore.checkAuth();
-
-      if (authStore.isAuthenticated) {
-        // Пользователь авторизован, разрешаем переход
-        next();
-      } else {
-        // Пользователь не авторизован, перенаправляем на страницу входа
-        next({ name: 'Login', query: { redirect: to.fullPath } });
-      }
-    } catch (error) {
-      // В случае ошибки перенаправляем на страницу входа
-      next({ name: 'Login', query: { redirect: to.fullPath } });
+  // Добавляем scrollBehavior для контроля прокрутки между страницами
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { top: 0 };
     }
-  } else {
-    // Маршрут не требует авторизации, разрешаем переход
-    next();
-  }
+  },
 });
+
+// Установка навигационного хука для проверки авторизации
+setupAuthGuard(router);
 
 export default router;

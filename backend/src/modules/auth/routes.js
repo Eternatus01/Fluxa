@@ -35,11 +35,6 @@ router.post(
 
 router.post("/signout", controller.signOut);
 
-router.post(
-  "/refresh",
-  body("refresh_token").notEmpty().withMessage("Токен обновления обязателен"),
-  validate,
-  controller.refreshToken
-);
+router.post("/refresh", controller.refreshToken);
 
 export default router;

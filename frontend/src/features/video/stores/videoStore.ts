@@ -2,6 +2,7 @@ import { useVideoApi } from "../composable/useVideoApi";
 import { defineStore } from 'pinia';
 import { computed, ref, type Ref } from "vue";
 import { Video, VideoError } from "../types/videoTypes";
+import { useUiStore } from '@/shared/stores/uiStore';
 
 interface VideoUpdate {
     video_id: string;
@@ -17,12 +18,12 @@ interface VideoUpdate {
 
 export const useVideoStore = defineStore("video", () => {
     const videoApi = useVideoApi();
+    const uiStore = useUiStore();
 
     // Реактивные состояния
     const videos: Ref<Video[] | null> = ref(null);
     const videosUser: Ref<Video[] | null> = ref(null);
     const video: Ref<Video | null> = ref(null);
-    const isLoading = ref(false);
     const error = ref<Error | null>(null);
     const searchResults = ref<Video[] | null>(null);
 
@@ -72,7 +73,7 @@ export const useVideoStore = defineStore("video", () => {
 
     // Загрузка всех видео
     const fetchVideos = async () => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -84,7 +85,7 @@ export const useVideoStore = defineStore("video", () => {
             videos.value = null;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -95,7 +96,7 @@ export const useVideoStore = defineStore("video", () => {
             return null;
         }
 
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -107,13 +108,13 @@ export const useVideoStore = defineStore("video", () => {
             videosUser.value = null;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
     // Загрузка конкретного видео
     const fetchVideo = async (id: string, user_id: string) => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -125,7 +126,7 @@ export const useVideoStore = defineStore("video", () => {
             video.value = null;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -133,7 +134,6 @@ export const useVideoStore = defineStore("video", () => {
     const addView = async (video_id: string, user_id: string): Promise<void> => {
         try {
             await videoApi.addView(video_id, user_id);
-            updateViewCount(video_id);
         } catch (err) {
             error.value = err as Error;
             throw err;
@@ -144,7 +144,7 @@ export const useVideoStore = defineStore("video", () => {
     const updateVideo = async (data: VideoUpdate) => {
         const { video_id, user_id, title, description, thumbnail_file, video_url, thumbnailOldPath, tags, type } = data;
 
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -174,7 +174,7 @@ export const useVideoStore = defineStore("video", () => {
             error.value = err as Error;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -193,19 +193,40 @@ export const useVideoStore = defineStore("video", () => {
 
     // Поиск видео
     const searchVideos = async (query: string) => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
+            console.log('Запрос поиска:', query);
             const data = await videoApi.searchVideos(query);
+            console.log('Результаты поиска API:', data);
             videos.value = data;
+            console.log('Обновлен videos.value:', videos.value);
             return data;
         } catch (err) {
             error.value = err as Error;
             searchResults.value = null;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
+        }
+    };
+
+    // Загрузка видео по подпискам
+    const fetchSubscribedVideos = async (user_id: string) => {
+        uiStore.isLoading = true;
+        error.value = null;
+        try {
+            const data = await videoApi.fetchSubscribedVideos(user_id);
+            videos.value = data;
+            console.log(videos.value);
+            return data;
+        } catch (err) {
+            error.value = err as Error;
+            videos.value = null;
+            throw err;
+        } finally {
+            uiStore.isLoading = false;
         }
     };
 
@@ -213,7 +234,6 @@ export const useVideoStore = defineStore("video", () => {
         videos: computed(() => videos.value),
         videosUser: computed(() => videosUser.value),
         video: computed(() => video.value),
-        isLoading: computed(() => isLoading.value),
         error: computed(() => error.value),
         searchResults: computed(() => searchResults.value),
         fetchVideos,
@@ -224,5 +244,6 @@ export const useVideoStore = defineStore("video", () => {
         clearVideos,
         clearCache,
         searchVideos,
+        fetchSubscribedVideos,
     };
 });

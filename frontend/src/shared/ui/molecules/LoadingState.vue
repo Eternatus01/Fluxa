@@ -5,7 +5,8 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex flex-col justify-center items-center py-16">
+    <div
+        class="flex flex-col justify-center items-center absolute top-0 left-0 right-0 bottom-0 bg-black/50 z-50">
         <div class="w-12 h-12 mb-4">
             <svg class="animate-spin text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

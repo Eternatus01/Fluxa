@@ -10,20 +10,23 @@ import {
 } from "../types/subscriptionTypes";
 import { useUserStore } from "../../user/stores/userStore";
 import { UserData, UserId } from "../../user/types/userTypes";
+import { useUiStore } from '@/shared/stores/uiStore';
+import { useSubscriptionCache } from '@/shared/composables/useSubscriptionCache';
 
 export const useSubscriptionStore = defineStore("subscription", () => {
     const subscriptionApi = useSubscriptionApi();
     const userStore = useUserStore();
+    const uiStore = useUiStore();
+    const subscriptionCache = useSubscriptionCache();
 
     // Реактивные состояния
     const subscriptions: Ref<UserData[] | null> = ref([]);
     const userSubscriptions: Ref<UserData[] | null> = ref(null);
     const subscriptionsCache: Ref<Subscription[]> = ref([]);
-    const isLoading: Ref<boolean> = ref(false);
     const error: Ref<SubscriptionError | null> = ref(null);
 
     const fetchUserSubscriptions = async (user_id: UserId): Promise<UserData[] | null | undefined> => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
@@ -37,72 +40,91 @@ export const useSubscriptionStore = defineStore("subscription", () => {
             userSubscriptions.value = null;
             return null;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
     const checkSubscription = async (target_id: ChannelId): Promise<boolean> => {
-        isLoading.value = true;
+        // Сначала проверяем кэш
+        if (subscriptionCache.hasSubscriptionStatus(target_id)) {
+            return subscriptionCache.getSubscriptionStatus(target_id) || false;
+        }
+
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
-            const data = await subscriptionApi.checkSubscription(target_id);
-            return data;
+            const status = await subscriptionApi.checkSubscription(target_id);
+            // Сохраняем результат в кэш
+            subscriptionCache.setSubscriptionStatus(target_id, status);
+            return status;
         } catch (err) {
             console.error("Check subscription error:", err);
             error.value = err as SubscriptionError;
             return false;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
     const subscribe = async (target_id: ChannelId): Promise<void> => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
             await subscriptionApi.subscribe(target_id);
+            // Обновляем кэш после успешной подписки
+            subscriptionCache.setSubscriptionStatus(target_id, true);
         } catch (err) {
             console.error("Ошибка при подписке:", err);
             error.value = err as SubscriptionError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
     const unsubscribe = async (target_id: ChannelId): Promise<void> => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
             await subscriptionApi.unSubscribe(target_id);
+            // Обновляем кэш после успешной отписки
+            subscriptionCache.setSubscriptionStatus(target_id, false);
         } catch (err) {
             console.error("Ошибка при отписке:", err);
             error.value = err as SubscriptionError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
     const toggleSubscribe = async (target_id: ChannelId): Promise<void> => {
-        isLoading.value = true;
+        uiStore.isLoading = true;
         error.value = null;
 
         try {
-            const data = await subscriptionApi.checkSubscription(target_id);
-            if (data) {
-                await unsubscribe(target_id);
+            // Проверяем статус подписки (используем кэш, если доступен)
+            const currentStatus = subscriptionCache.hasSubscriptionStatus(target_id)
+                ? subscriptionCache.getSubscriptionStatus(target_id)
+                : await subscriptionApi.checkSubscription(target_id);
+
+            if (currentStatus) {
+                // Если подписка есть - отписываемся
+                await subscriptionApi.unSubscribe(target_id);
+                subscriptionCache.setSubscriptionStatus(target_id, false);
             } else {
-                await subscribe(target_id);
+                // Если подписки нет - подписываемся
+                await subscriptionApi.subscribe(target_id);
+                subscriptionCache.setSubscriptionStatus(target_id, true);
             }
         } catch (err) {
             error.value = err as SubscriptionError;
             throw err;
         } finally {
-            isLoading.value = false;
+            uiStore.isLoading = false;
         }
     };
 
@@ -110,13 +132,14 @@ export const useSubscriptionStore = defineStore("subscription", () => {
         subscriptions.value = null;
         userSubscriptions.value = null;
         error.value = null;
+        // Очищаем кэш при выходе из аккаунта
+        subscriptionCache.clearSubscriptionCache();
     };
 
     return {
         subscriptions: computed(() => subscriptions.value),
         userSubscriptions: computed(() => userSubscriptions.value),
         subscriptionsCache: computed(() => subscriptionsCache.value),
-        isLoading: computed(() => isLoading.value),
         error: computed(() => error.value),
         fetchUserSubscriptions,
         checkSubscription,

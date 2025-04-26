@@ -1,6 +1,7 @@
 <template>
     <div class="min-h-screen">
-        <main class="container mx-auto px-4 py-8">
+        <LoadingState v-if="uiStore.isLoading" />
+        <main v-else class="container mx-auto px-4 py-8">
             <div v-if="videoData" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <!-- Левая колонка - Форма редактирования -->
                 <div class="lg:col-span-7 xl:col-span-8">
@@ -38,17 +39,21 @@ import { useUserStore } from '../../user/stores/userStore'
 import VideoEditForm from '../components/control/VideoEditForm.vue'
 import VideoPreview from '../components/control/VideoPreview.vue'
 import type { Video } from '../types/videoTypes'
+import { useUiStore } from '@/shared/stores/uiStore';
+import LoadingState from '@/shared/ui/molecules/LoadingState.vue';
 
 const route = useRoute()
 const router = useRouter()
 const videoStore = useVideoStore()
 const userStore = useUserStore()
+const uiStore = useUiStore();
 
 const videoData = ref<Video | null>(null)
 const isSaving = ref(false)
 
 // Загрузка данных видео
 onMounted(async () => {
+    uiStore.isLoading = true;
     try {
         // Получаем ID пользователя из хранилища или используем пустую строку как запасной вариант
         const userId = userStore.user?.id || '';
@@ -64,6 +69,8 @@ onMounted(async () => {
         videoData.value = video
     } catch (error) {
         console.error("Ошибка при загрузке данных видео:", error)
+    } finally {
+        uiStore.isLoading = false;
     }
 })
 
